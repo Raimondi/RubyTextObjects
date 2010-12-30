@@ -8,15 +8,16 @@ let s:skip_p  = 'getline(''.'') =~ ''^\s*#'''
 "let s:skip_p  = 'synIDattr(synID(line("."), col("."), 0), "name") =~? ''\%(string\)\|\%(comment\)'''
 let s:noco_p  = '\m^[^#]\{-}'
 let s:start_p = '\%(\<def\>\|^\s*\<if\>\|\<do\>\|\<module\>\|\<class\>\)'
-let s:middle_p= a:inner ? '^\s*\<els\%(e\|if\)\>' : ''
+let s:middle_p= '^\s*\<els\%(e\|if\)\>'
 let s:end_p   = '^\s*\<end\>'
 let s:flags_forward = 'Wn'
 let s:flags_backward= 'Wnb'
 
 function! RubyBlockTxtObj(inner) range
-  echom '-------------------------'
+  echom '------------'.(a:inner ? 'Inner' : 'All').'--------------'
   let lastline      = line('$')
   let start         = 0
+  let middle_p= a:inner ? s:middle_p : ''
   let end           = -1
   let count1        = v:count1
   let visual        = visualmode() ==# '^V$'
@@ -28,10 +29,10 @@ function! RubyBlockTxtObj(inner) range
   let both_match = (
         \ getline(t_start) =~# s:noco_p.s:start_p &&
         \ getline(t_end)   =~# s:noco_p.s:end_p[1:])
-  echom 't_start'.getline(t_start)
-  echom getline(t_start) =~# s:noco_p.s:start_p
-  echom 't_end'.getline(t_end)
-  echom getline(t_end)   =~# s:noco_p.s:end_p[1:]
+  echom 't_start => '.getline(t_start)
+  echom 'Match start: '.getline(t_start) =~# s:noco_p.s:start_p
+  echom 't_end => '.getline(t_end)
+  echom 'Match end: '.getline(t_end)   =~# s:noco_p.s:end_p[1:]
   echom 'Both: '.both_match
   while  count1 > 0 && (!(count1 > 1) || (t_start > 1 && t_end < lastline))
 
@@ -63,20 +64,20 @@ function! RubyBlockTxtObj(inner) range
       let eflags = s:flags_forward.'c'
     endif
 
-    "echom "searchpair('".s:start_p."', '". s:middle_p."', '".s:end_p."', '".sflags."', '".s:skip_p."')"
-    "echom "searchpair('".s:start_p."', '". s:middle_p."', '".s:end_p."', '".eflags."', '".s:skip_p."')"
+    "echom "searchpair('".s:start_p."', '". middle_p."', '".s:end_p."', '".sflags."', '".s:skip_p."')"
+    "echom "searchpair('".s:start_p."', '". middle_p."', '".s:end_p."', '".eflags."', '".s:skip_p."')"
     "echom 'spos: '.spos.':'.getline(t_start).'|'.string(getline(t_start) =~# s:end_p)
     "echom 'epos: '.epos.':'.getline(t_end).  '|'.string(getline(t_end  ) =~# s:start_p)
 
     call cursor(t_start, spos)
     let t_start = searchpair(
-          \ s:start_p, s:middle_p, s:end_p,
+          \ s:start_p, middle_p, s:end_p,
           \ sflags, s:skip_p)
     echom 't_start: '.t_start
 
     call cursor(t_end, epos)
     let t_end = searchpair(
-          \ s:start_p, s:middle_p, s:end_p,
+          \ s:start_p, middle_p, s:end_p,
           \ eflags, s:skip_p)
     echom 't_end: '.t_end
 
