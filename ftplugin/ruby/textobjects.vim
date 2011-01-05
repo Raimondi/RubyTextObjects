@@ -8,9 +8,9 @@ vnoremap <silent>ir :call RubyBlockTxtObjInner(1)<CR><Esc>gv
 let s:skip_p  = 'getline(''.'') =~ ''^\s*#'''
 "let s:skip_p  = 'synIDattr(synID(line("."), col("."), 0), "name") =~? ''\%(string\)\|\%(comment\)'''
 let s:noco_p  = '\m^[^#]\{-}'
-let s:start_p = '\%(\<def\>\|^\s*\<if\>\|\<do\>\|\<module\>\|\<class\>\)'
-let s:middle_p= '^\s*\<els\%(e\|if\)\>'
-let s:end_p   = '^\s*\<end\>'
+let s:start_p = '\%(\<def\>\|\<do\>\|\<module\>\|\<class\>\|\<case\>\|\%(^\|;\)\s*\%(\<if\>\|\<unless\>\|\<begin\>\|\<catch\>\|\<until\>\|\<while\>\|\<for\>\)\)'
+let s:middle_p= '\%(^\|;\)\s*\%(\<els\%(e\|if\)\>\|\<rescue\>\|\<ensure\>\|\<when\>\)'
+let s:end_p   = '\%(^\|;\)\s*\<end\>'
 let s:flags_forward = 'Wn'
 let s:flags_backward= 'Wnb'
 
@@ -28,8 +28,8 @@ function! RubyBlockTxtObjOuter(visual) range "{{{1
   let passes  = 0
 
   let both_match = (
-        \ getline(t_start - 1) =~# s:noco_p.s:start_p &&
-        \ getline(t_end + 1)   =~# s:noco_p.s:end_p[1:])
+        \ getline(t_start - 1) =~# s:start_p &&
+        \ getline(t_end + 1)   =~# s:end_p)
   while  count1 > 0 && (!(count1 > 1) || (t_start - 1 > 1 && t_end + 1 < lastline))
 
     let passes  += 1
@@ -39,10 +39,10 @@ function! RubyBlockTxtObjOuter(visual) range "{{{1
     echom ''
     echom 'Looping! Count: '.count1
     echom 't_start('.t_start.') => '.getline(t_start)
-    echom 'Match start: '.getline(t_start) =~# s:noco_p.s:start_p
+    echom 'Match start: '.getline(t_start) =~# s:start_p
     exec t_start.';'.t_end.'print'
     echom 't_end('.t_end.') => '.getline(t_end)
-    echom 'Match end: '.getline(t_end)   =~# s:noco_p.s:end_p[1:]
+    echom 'Match end: '.getline(t_end)   =~# s:end_p
     echom 'Both: '.both_match
 
     if getline(t_start) =~# s:end_p
@@ -122,7 +122,7 @@ function! RubyBlockTxtObjOuter(visual) range "{{{1
 
 endfunction " }}}1
 
-function! RubyBlockTxtObjInner(visual) range
+function! RubyBlockTxtObjInner(visual) range "{{{1
   echom '------------=Inner=--------------'
   let lastline      = line('$')
   let start         = 0
@@ -137,21 +137,15 @@ function! RubyBlockTxtObjInner(visual) range
   let t_end   = a:lastline
   let passes  = 0
 
+  " Change test to allow ^ anchor in s:start_p and s:end_p
   let both_match = (
-        \ getline(t_start - 1) =~# s:noco_p.s:start_p &&
-        \ getline(t_end + 1)   =~# s:noco_p.s:end_p[1:])
+        \ getline(t_start - 1) =~# s:start_p &&
+        \ getline(t_end + 1)   =~# s:end_p)
   let start_matches = getline(t_start) =~# s:noco_p.s:start_p
-  let middle_matches= getline(a:firstline) =~# s:noco_p.middle_p[1:]
-  let end_matches   = getline(t_end)   =~# s:noco_p.s:end_p[1:]
+  let middle_matches= getline(a:firstline) =~# middle_p
+  let end_matches   = getline(t_end)   =~# s:end_p
   echom 'start_matches'.start_matches
   echom 'end_matches'.end_matches
-
-
-  " 1. Select inner block.
-  " 1.1. From start/end in normal mode -> reduce
-  " 1.2. From inside the block in normal/visual -> expand or keep
-  " 2. Extend selection to next inner block.
-  " 2.2.
 
   while  count1 > 0 && (!(count1 > 1) || (t_start - 1 > 1 && t_end + 1 < lastline))
 
@@ -176,7 +170,7 @@ function! RubyBlockTxtObjInner(visual) range
     echom 'Match start: '.getline(t_start) =~# s:noco_p.s:start_p
     exec t_start.';'.t_end.'print'
     echom 't_end('.t_end.') => '.getline(t_end)
-    echom 'Match end: '.getline(t_end)   =~# s:noco_p.s:end_p[1:]
+    echom 'Match end: '.getline(t_end)   =~# s:end_p
     echom 'Both: '.both_match
     echom 'Middle: '.middle_matches
     echom 'Text:'
@@ -185,19 +179,19 @@ function! RubyBlockTxtObjInner(visual) range
     endfor
     echom ''
 
-    if getline(t_start) =~# s:noco_p.s:end_p[1:]
+    if getline(t_start) =~# s:end_p
       let spos   =    1
     else
       let spos   = 9999
     endif
 
-    if getline(t_end)   =~# s:noco_p.s:start_p
+    if getline(t_end)   =~# s:start_p
       let epos   = 9999
     else
       let epos   =    1
     endif
 
-    if getline(t_start) =~# s:noco_p.s:end_p[1:]
+    if getline(t_start) =~# s:end_p
       let sflags = s:flags_backward
     else
       let sflags = s:flags_backward.'c'
