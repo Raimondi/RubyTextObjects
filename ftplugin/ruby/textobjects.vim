@@ -126,7 +126,7 @@ function! RubyBlockTxtObjInner(visual) range
   echom '------------=Inner=--------------'
   let lastline      = line('$')
   let start         = 0
-  let middle_p= s:middle_p
+  let middle_p      = s:middle_p
   let end           = -1
   let count1        = v:count1
   let visual        = a:visual ? visualmode() ==# 'V' : 0
@@ -141,14 +141,17 @@ function! RubyBlockTxtObjInner(visual) range
         \ getline(t_start - 1) =~# s:noco_p.s:start_p &&
         \ getline(t_end + 1)   =~# s:noco_p.s:end_p[1:])
   let start_matches = getline(t_start) =~# s:noco_p.s:start_p
+  let middle_matches= getline(a:firstline) =~# s:noco_p.middle_p[1:]
   let end_matches   = getline(t_end)   =~# s:noco_p.s:end_p[1:]
+  echom 'start_matches'.start_matches
+  echom 'end_matches'.end_matches
 
 
   " 1. Select inner block.
   " 1.1. From start/end in normal mode -> reduce
   " 1.2. From inside the block in normal/visual -> expand or keep
   " 2. Extend selection to next inner block.
-  " 2.2. 
+  " 2.2.
 
   while  count1 > 0 && (!(count1 > 1) || (t_start - 1 > 1 && t_end + 1 < lastline))
 
@@ -157,14 +160,17 @@ function! RubyBlockTxtObjInner(visual) range
 
     let passes  += 1
 
-    if passes > 1 || !(start_matches || end_matches) || visual
+    if passes == 1 && middle_matches
+      echom 'Incr end'
+      let t_end   += 1
+    elseif passes > 1 || (!start_matches && !end_matches) || visual
+      echom 'Incr both'
+      echom passes > 1
+      echom (!start_matches && !end_matches)
+      echom visual
       let t_start -= 1
       let t_end   += 1
     endif
-    "if passes == 1 && end_matches && !visual
-    "else
-    "  let t_end   += 1
-    "endif
 
     echom 't_start('.t_start.') => '.getline(t_start)
     echom 'Match start: '.getline(t_start) =~# s:noco_p.s:start_p
@@ -172,6 +178,7 @@ function! RubyBlockTxtObjInner(visual) range
     echom 't_end('.t_end.') => '.getline(t_end)
     echom 'Match end: '.getline(t_end)   =~# s:noco_p.s:end_p[1:]
     echom 'Both: '.both_match
+    echom 'Middle: '.middle_matches
     echom 'Text:'
     for i in range(t_start, t_end)
       echom i.' | '.getline(i)
