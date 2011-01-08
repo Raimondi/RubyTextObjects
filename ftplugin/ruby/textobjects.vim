@@ -33,7 +33,7 @@ function! RubyBlockTxtObjOuter(visual) range "{{{1
   let t_end   = a:lastline  - 1
   let passes  = 0
 
-  let both_match = (
+  let match_both_outer = (
         \ Match(t_start - 1, 'start') &&
         \ Match(t_end + 1, 'end'))
   while  count1 > 0 &&
@@ -52,7 +52,7 @@ function! RubyBlockTxtObjOuter(visual) range "{{{1
       break
     endif
 
-    if both_match &&
+    if match_both_outer &&
           \ start == a:firstline && end == a:lastline && passes == 1
       continue
     endif
@@ -85,8 +85,7 @@ function! RubyBlockTxtObjInner(visual) range "{{{1
   let t_end   = a:lastline
   let passes  = 0
 
-  " Change test to allow ^ anchor in s:start_p and s:end_p
-  let both_match = (
+  let match_both_outer = (
         \ Match(t_start - 1, 'start') &&
         \ Match(t_end + 1, 'end'))
   let start_matches = Match(t_start, 'start')
@@ -113,7 +112,7 @@ function! RubyBlockTxtObjInner(visual) range "{{{1
       break
     endif
 
-    if both_match &&
+    if match_both_outer &&
           \ start == (a:firstline - 1) && end == (a:lastline + 1) &&
           \ passes == 1 && visual
       continue
