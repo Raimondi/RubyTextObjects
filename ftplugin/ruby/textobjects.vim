@@ -20,7 +20,6 @@ let s:end_p   = '\%(^\|;\)\s*\<end\>'
 " Don't wrap or move the cursor
 let s:flags = 'Wn'
 
-
 function! RubyTxtObjOuter(visual) range "{{{1
   let lastline      = line('$')
   let start         = 0
@@ -100,6 +99,7 @@ function! RubyTxtObjInner(visual) range "{{{1
         \ (!(count1 > 1) || (t_start - 1 > 1 && t_end + 1 < lastline))
     let passes += 1
 
+    " If a middle pattern is matched, use it as start
     if passes == 1 && middle_matches
       let t_end   += 1
     elseif passes > 1 || (!start_matches && !end_matches) || visual
@@ -248,7 +248,7 @@ function! FindTextObject(first, last, start, middle, end, flags, skip) "{{{1
     endif
   endif "}}}2
 
-  echom string(result).', first: '.string(first).', last'.string(last).', epos: '.epos.', spos: '.spos.', sflags: '.sflags.', eflags: '.eflags
+  "echom string(result).', first: '.string(first).', last'.string(last).', epos: '.epos.', spos: '.spos.', sflags: '.sflags.', eflags: '.eflags
   return result
 
 endfunction "}}}1
@@ -273,6 +273,6 @@ function! Match(line, part) " {{{1
   else
     throw 'Oops!'
   endif
-  echom result
+  "echom result
   return result
 endfunction " }}}1
