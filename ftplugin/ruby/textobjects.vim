@@ -261,4 +261,118 @@ function! RubyBlockTxtObjInner(visual) range "{{{1
 
 
 
+endfunction "}}}1
+
+function! FindTextObject(first, last, start, middle, end, flags, skip) "{{{1
+
+  let first = {'start':0, 'end':0, 'range':0}
+  let last  = {'start':0, 'end':0, 'range':0}
+
+  if a:first == a:last " Range is the current line {{{2
+    if getline(a:first)   =~# a:end
+      let spos   = 1
+      let sflags = a:flags.'b'
+    else
+      let spos   = 9999
+      let sflags = a:flags.'bc'
+    endif
+
+    if getline(a:first) =~# a:start
+      let epos   = 9999
+      let eflags = a:flags
+    else
+      let epos   = 1
+      let eflags = a:flags.'c'
+    endif
+
+    call cursor(a:first, spos)
+    let first.start  = searchpair(a:start,a:middle,a:end,sflags,a:skip)
+    call cursor(a:first, epos)
+    let first.end    = searchpair(a:start,a:middle,a:end,eflags,a:skip)
+
+    let result = [first.start, first.end]
+
+  else " Range is not the current line {{{2
+
+    if getline(a:first)   =~# a:end
+      let spos   = 1
+      let sflags = a:flags.'b'
+    else
+      let spos   = 9999
+      let sflags = a:flags.'bc'
+    endif
+
+    if getline(a:first) =~# a:start
+      let epos   = 9999
+      let eflags = a:flags
+    else
+      let epos   = 1
+      let eflags = a:flags.'c'
+    endif
+
+    call cursor(a:first, spos)
+    let first.start  = searchpair(a:start,a:middle,a:end,sflags,a:skip)
+    call cursor(a:first, epos)
+    let first.end    = searchpair(a:start,a:middle,a:end,eflags,a:skip)
+    let first.range  = first.end - first.start
+
+    if getline(a:last)   =~# a:end
+      let spos   = 1
+      let sflags = a:flags.'b'
+    else
+      let spos   = 9999
+      let sflags = a:flags.'bc'
+    endif
+
+    if getline(a:last) =~# a:start
+      let epos   = 9999
+      let eflags = a:flags
+    else
+      let epos   = 1
+      let eflags = a:flags.'c'
+    endif
+
+    call cursor(a:last, spos)
+    let last.start  = searchpair(a:start,a:middle,a:end,sflags,a:skip)
+    call cursor(a:last, epos)
+    let last.end    = searchpair(a:start,a:middle,a:end,eflags,a:skip)
+    let last.range  = last.end - last.start
+
+    " Now, decide what to return
+    if first.range > last.range
+      if first.start <= last.start && first.end >= last.end
+        " last is inside first
+        let result = [first.start, first.end]
+      else
+        " Something is wrong, last is not inside first
+        let result = [0,0]
+      endif
+    elseif first.range < last.range
+      if first.start >= last.start && first.end <= last.end
+        " first is inside last
+        let result = [last.start, last.end]
+      else
+        " Something is wrong, first is not inside last
+        let result = [0,0]
+      endif
+    else
+      let result = [first.start, first.end]
+    endif
+  endif "}}}2
+
+  echom string(result).', first: '.string(first).', last'.string(last).', epos: '.epos.', spos: '.spos.', sflags: '.sflags.', eflags: '.eflags
+  return result
+
+endfunction "}}}1
+
+function! Test() range
+  return FindTextObject(
+        \ a:firstline,
+        \ a:lastline,
+        \ s:start_p,
+        \ s:middle_p,
+        \ s:end_p,
+        \ s:flags_forward,
+        \ s:skip_p
+        \ )
 endfunction
