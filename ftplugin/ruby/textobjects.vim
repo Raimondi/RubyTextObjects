@@ -252,15 +252,17 @@ endfunction " }}}1
 
 function! Match(line, part) " {{{1
   call cursor(a:line, 1)
-  if a:part == 'start'
+  if a:part =~ '\ms\%[tart]'
     call search(s:start_p, 'cW', a:line)
     let result = getline('.') =~# s:start_p && !eval(s:skip_p)
-  elseif a:part == 'middle'
+  elseif a:part =~ '\mm\%[iddle]'
     call search(s:middle_p, 'cW', a:line)
     let result = getline('.') =~# s:middle_p && !eval(s:skip_p)
-  else
+  elseif a:part =~ '\me\%[nd]'
     call search(s:end_p, 'cW', a:line)
     let result = getline('.') =~# s:end_p && !eval(s:skip_p)
+  else
+    throw 'Oops!'
   endif
   echom result
   return result
