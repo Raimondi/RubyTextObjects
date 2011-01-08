@@ -159,7 +159,7 @@ function! FindTextObject(first, last, start, middle, end, flags, skip) "{{{1
       let epos   = 9999
       let eflags = a:flags
     else
-      let epos   = 1)
+      let epos   = 1
       let eflags = a:flags.'c'
     endif
 
