@@ -1,7 +1,7 @@
 echom '----Loaded on: '.strftime("%Y %b %d %X")
 
-onoremap <silent>ar :<C-u>call RubyTxtObjOuter(0)<CR>
-onoremap <silent>ir :<C-u>call RubyTxtObjInner(0)<CR>
+onoremap <expr><silent>ar RubyTxtObjOuter(0)
+onoremap <expr><silent>ir RubyTxtObjInner(0)
 vnoremap <silent>ar :call RubyTxtObjOuter(1)<CR><Esc>gv
 vnoremap <silent>ir :call RubyTxtObjInner(1)<CR><Esc>gv
 
@@ -60,15 +60,19 @@ function! RubyTxtObjOuter(visual) range "{{{1
   endwhile
 
   "return
-  if end < start || start < 1 || end < 1
-    return
-  elseif start == end
-    exec "normal! \<Esc>".start."G0V"
-    return
+  if a:visual
+    if end >= start && start >= 1 && end >= 1
+      " Do magic
+      exec "normal! \<Esc>".start.'G0V'.end."G"
+    endif
   else
-    exec "normal! \<Esc>".start.'G0V'
-    exec "normal! ".end."G"
-    return
+    if end >= start && start >= 1 && end >= 1
+      " Do magic
+      return ':exec "normal! '.start.'G0V'.end."G\"\<CR>"
+    else
+      " No pair found, do nothing
+      return "\<Esc>"
+    endif
   endif
 
 endfunction " }}}1
@@ -121,23 +125,29 @@ function! RubyTxtObjInner(visual) range "{{{1
     let count1  -= 1
   endwhile
 
-  echom ''
   if (end - start) > 1
+    " There is an inner section
     let start += 1
     let end   -= 1
   else
-    return
+    " There is no inner section, nothing to do
+    let start = 0
+    let end = 0
   endif
 
-  if end < start || start < 1 || end < 1
-    return
-  elseif start == end
-    exec "normal! \<Esc>".start."G0V"
-    return
+  if a:visual
+    if end >= start && start >= 1 && end >= 1
+      " Do magic for visual mapping
+      exec "normal! \<Esc>".start.'G0V'.end."G"
+    endif
   else
-    exec "normal! \<Esc>".start.'G0V'
-    exec "normal! ".end."G"
-    return
+    if end >= start && start >= 1 && end >= 1
+      " Do magic for operator pending mapping
+      return ':exec "normal! '.start.'G0V'.end."G\"\<CR>"
+    else
+      " No pair found, cancel operator
+      return "\<Esc>"
+    endif
   endif
 endfunction "}}}1
 
