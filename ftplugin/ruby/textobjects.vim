@@ -34,8 +34,8 @@ function! RubyBlockTxtObjOuter(visual) range "{{{1
   let passes  = 0
 
   let both_match = (
-        \ getline(t_start - 1) =~# s:start_p &&
-        \ getline(t_end + 1)   =~# s:end_p)
+        \ Match(t_start - 1, 'start') &&
+        \ Match(t_end + 1, 'end'))
   while  count1 > 0 &&
         \ (!(count1 > 1) || (t_start - 1 > 1 && t_end + 1 < lastline))
     let passes  += 1
@@ -87,12 +87,11 @@ function! RubyBlockTxtObjInner(visual) range "{{{1
 
   " Change test to allow ^ anchor in s:start_p and s:end_p
   let both_match = (
-        \ getline(t_start - 1) =~# s:start_p &&
-        \ getline(t_end + 1)   =~# s:end_p)
-  let start_matches = getline(t_start) =~# s:start_p
-  let start_matches = getline(t_start) =~# s:start_p
-  let middle_matches= getline(a:firstline) =~# middle_p
-  let end_matches   = getline(t_end)   =~# s:end_p
+        \ Match(t_start - 1, 'start') &&
+        \ Match(t_end + 1, 'end'))
+  let start_matches = Match(t_start, 'start')
+  let middle_matches= Match(a:firstline, 'm')
+  let end_matches   = Match(t_end, 'e')
 
   while  count1 > 0 &&
         \ (!(count1 > 1) || (t_start - 1 > 1 && t_end + 1 < lastline))
@@ -148,7 +147,7 @@ function! FindTextObject(first, last, start, middle, end, flags, skip) "{{{1
   let last  = {'start':0, 'end':0, 'range':0}
 
   if a:first == a:last " Range is the current line {{{2
-    if getline(a:first)   =~# a:end && !(getline('.') =~ '^\s*#' || synIDattr(synID(line("."), col("."), 0), "name") =~? '\%(string\)\|\%(comment\)')
+    if Match(a:first, 'e')
       let spos   = 1
       let sflags = a:flags.'b'
     else
@@ -156,7 +155,7 @@ function! FindTextObject(first, last, start, middle, end, flags, skip) "{{{1
       let sflags = a:flags.'bc'
     endif
 
-    if getline(a:first) =~# a:start && !(getline('.') =~ '^\s*#' || synIDattr(synID(line("."), col("."), 0), "name") =~? '\%(string\)\|\%(comment\)')
+    if Match(a:first, 's')
       let epos   = 9999
       let eflags = a:flags
     else
@@ -173,7 +172,7 @@ function! FindTextObject(first, last, start, middle, end, flags, skip) "{{{1
 
   else " Range is not the current line {{{2
 
-    if getline(a:first)   =~# a:end && !(getline('.') =~ '^\s*#' || synIDattr(synID(line("."), col("."), 0), "name") =~? '\%(string\)\|\%(comment\)')
+    if Match(a:first, 'e')
       let spos   = 1
       let sflags = a:flags.'b'
     else
@@ -181,7 +180,7 @@ function! FindTextObject(first, last, start, middle, end, flags, skip) "{{{1
       let sflags = a:flags.'bc'
     endif
 
-    if getline(a:first) =~# a:start && !(getline('.') =~ '^\s*#' || synIDattr(synID(line("."), col("."), 0), "name") =~? '\%(string\)\|\%(comment\)')
+    if Match(a:first, 's')
       let epos   = 9999
       let eflags = a:flags
     else
@@ -195,7 +194,7 @@ function! FindTextObject(first, last, start, middle, end, flags, skip) "{{{1
     let first.end    = searchpair(a:start,a:middle,a:end,eflags,a:skip)
     let first.range  = first.end - first.start
 
-    if getline(a:last)   =~# a:end && !(getline('.') =~ '^\s*#' || synIDattr(synID(line("."), col("."), 0), "name") =~? '\%(string\)\|\%(comment\)')
+    if Match(a:last, 'e')
       let spos   = 1
       let sflags = a:flags.'b'
     else
@@ -203,7 +202,7 @@ function! FindTextObject(first, last, start, middle, end, flags, skip) "{{{1
       let sflags = a:flags.'bc'
     endif
 
-    if getline(a:last) =~# a:start && !(getline('.') =~ '^\s*#' || synIDattr(synID(line("."), col("."), 0), "name") =~? '\%(string\)\|\%(comment\)')
+    if Match(a:last, 's')
       let epos   = 9999
       let eflags = a:flags
     else
