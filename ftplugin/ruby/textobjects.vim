@@ -94,6 +94,7 @@ function! RubyBlockTxtObjInner(visual) range "{{{1
 
   while  count1 > 0 &&
         \ (!(count1 > 1) || (t_start - 1 > 1 && t_end + 1 < lastline))
+    let passes += 1
 
     if passes == 1 && middle_matches
       let t_end   += 1
