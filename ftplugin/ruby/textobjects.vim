@@ -6,7 +6,7 @@ vnoremap <silent>ar :call RubyTxtObjOuter(1)<CR><Esc>gv
 vnoremap <silent>ir :call RubyTxtObjInner(1)<CR><Esc>gv
 
 " Lines where this expression returns 1 will be skipped
-let s:skip_p  = 'getline(''.'') =~ ''^\s*#'' || synIDattr(synID(line("."), col("."), 0), "name") =~? ''\%(string\)\|\%(comment\)'''
+let s:skip_e  = 'getline(''.'') =~ ''^\s*#'' || synIDattr(synID(line("."), col("."), 0), "name") =~? ''\%(string\)\|\%(comment\)'''
 
 " Start of the block matches this
 let s:start_p = '\%(\<def\>\|\<do\>\|\<module\>\|\<class\>\|\<case\>\|\%(^\|;\)\s*\%(\<if\>\|\<unless\>\|\<begin\>\|\<catch\>\|\<until\>\|\<while\>\|\<for\>\)\)'
@@ -43,7 +43,7 @@ function! RubyTxtObjOuter(visual) range "{{{1
     let t_end   += 1
 
     let [t_start, t_end] = FindTextObject(t_start, t_end, s:start_p, middle_p,
-          \ s:end_p, s:flags, s:skip_p)
+          \ s:end_p, s:flags, s:skip_e)
 
     if t_start > 0 && t_end > 0
       let start = t_start
@@ -104,7 +104,7 @@ function! RubyTxtObjInner(visual) range "{{{1
     endif
 
     let [t_start, t_end] = FindTextObject(t_start, t_end, s:start_p,
-          \ s:middle_p, s:end_p, s:flags, s:skip_p)
+          \ s:middle_p, s:end_p, s:flags, s:skip_e)
 
     if t_start > 0 && t_end > 0
       let start = t_start
@@ -246,20 +246,20 @@ endfunction "}}}1
 function! Test() range " {{{1
   return Match(a:firstline, 'start').', '.Match(a:firstline, 'middle').', '.Match(a:firstline, 'end')
 "  return FindTextObject(a:firstline, a:lastline, s:start_p, s:middle_p,
-"        \s:end_p, s:flags, s:skip_p)
+"        \s:end_p, s:flags, s:skip_e)
 endfunction " }}}1
 
 function! Match(line, part) " {{{1
   call cursor(a:line, 1)
   if a:part =~ '\ms\%[tart]'
     call search(s:start_p, 'cW', a:line)
-    let result = getline('.') =~# s:start_p && !eval(s:skip_p)
+    let result = getline('.') =~# s:start_p && !eval(s:skip_e)
   elseif a:part =~ '\mm\%[iddle]'
     call search(s:middle_p, 'cW', a:line)
-    let result = getline('.') =~# s:middle_p && !eval(s:skip_p)
+    let result = getline('.') =~# s:middle_p && !eval(s:skip_e)
   elseif a:part =~ '\me\%[nd]'
     call search(s:end_p, 'cW', a:line)
-    let result = getline('.') =~# s:end_p && !eval(s:skip_p)
+    let result = getline('.') =~# s:end_p && !eval(s:skip_e)
   else
     throw 'Oops!'
   endif
