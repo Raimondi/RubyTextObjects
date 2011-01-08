@@ -1,9 +1,9 @@
 echom '----Loaded on: '.strftime("%Y %b %d %X")
 
-onoremap <silent>ar :<C-u>call RubyBlockTxtObjOuter(0)<CR>
-onoremap <silent>ir :<C-u>call RubyBlockTxtObjInner(0)<CR>
-vnoremap <silent>ar :call RubyBlockTxtObjOuter(1)<CR><Esc>gv
-vnoremap <silent>ir :call RubyBlockTxtObjInner(1)<CR><Esc>gv
+onoremap <silent>ar :<C-u>call RubyTxtObjOuter(0)<CR>
+onoremap <silent>ir :<C-u>call RubyTxtObjInner(0)<CR>
+vnoremap <silent>ar :call RubyTxtObjOuter(1)<CR><Esc>gv
+vnoremap <silent>ir :call RubyTxtObjInner(1)<CR><Esc>gv
 
 " Lines where this expression returns 1 will be skipped
 let s:skip_p  = 'getline(''.'') =~ ''^\s*#'' || synIDattr(synID(line("."), col("."), 0), "name") =~? ''\%(string\)\|\%(comment\)'''
@@ -21,7 +21,7 @@ let s:end_p   = '\%(^\|;\)\s*\<end\>'
 let s:flags = 'Wn'
 
 
-function! RubyBlockTxtObjOuter(visual) range "{{{1
+function! RubyTxtObjOuter(visual) range "{{{1
   let lastline      = line('$')
   let start         = 0
   let middle_p      = ''
@@ -73,7 +73,7 @@ function! RubyBlockTxtObjOuter(visual) range "{{{1
 
 endfunction " }}}1
 
-function! RubyBlockTxtObjInner(visual) range "{{{1
+function! RubyTxtObjInner(visual) range "{{{1
   let lastline      = line('$')
   let start         = 0
   let middle_p      = s:middle_p
