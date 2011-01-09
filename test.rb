@@ -146,8 +146,7 @@ module B
   def b1
   end
   def b2
-  end
-end
+  end; end
 
 class Sample
   include A

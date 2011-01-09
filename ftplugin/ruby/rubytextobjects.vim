@@ -1,7 +1,7 @@
-" File:        ftplugin/ruby/rubytextobj.vim
+" File:        ftplugin/ruby/rubytextobjects.vim
 " Version:     0.1a
 " Modified:    2011-01-00
-" Description: This ftplugin provides new text objects for Ruby.
+" Description: This ftplugin provides new text objects for Ruby files.
 " Maintainer:  Israel Chauca F. <israelchauca@gmail.com>
 " Manual:      The new text objects are 'ir' and 'ar'. Place this file in
 "              'ftplugin/ruby/' inside $HOME/.vim or somewhere else in your
@@ -14,39 +14,39 @@ if exists('no_plugin_maps') || exists('no_ruby_maps')
   finish
 endif
 
-if !exists('testing_RubyTextObj')
+if !exists('testing_RubyTextObjects')
   " Be nice with existing mappings
 
-  onoremap <silent> <buffer> <expr> <Plug>RubyTextObjAll <SID>RubyTxtObjOuter(0)
-  if !hasmapto('<Plug>RubyTextObjAll', 'o')
-    omap <unique> <buffer> ar <Plug>RubyTextObjAll
+  onoremap <silent> <buffer> <expr> <Plug>RubyTextObjectsAll <SID>RubyTextObjectsAll(0)
+  if !hasmapto('<Plug>RubyTextObjectsAll', 'o')
+    omap <unique> <buffer> ar <Plug>RubyTextObjectsAll
   endif
 
-  onoremap <silent> <buffer> <expr> <Plug>RubyTextObjIn <SID>RubyTxtObjInner(0)
-  if !hasmapto('<Plug>RubyTextObjIn', 'o')
-    omap <unique> <buffer> ir <Plug>RubyTextObjIn
+  onoremap <silent> <buffer> <expr> <Plug>RubyTextObjectsInner <SID>RubyTextObjectsInner(0)
+  if !hasmapto('<Plug>RubyTextObjectsInner', 'o')
+    omap <unique> <buffer> ir <Plug>RubyTextObjectsInner
   endif
 
-  vnoremap <silent> <buffer> <Plug>RubyTextObjAll :call <SID>RubyTxtObjOuter(1)<CR><Esc>gv
-  if !hasmapto('<Plug>RubyTextObjAll', 'v')
-    vmap <unique> <buffer> ar <Plug>RubyTextObjAll
+  vnoremap <silent> <buffer> <Plug>RubyTextObjectsAll :call <SID>RubyTextObjectsAll(1)<CR><Esc>gv
+  if !hasmapto('<Plug>RubyTextObjectsAll', 'v')
+    vmap <unique> <buffer> ar <Plug>RubyTextObjectsAll
   endif
 
-  vnoremap <silent> <buffer> <Plug>RubyTextObjIn :call <SID>RubyTxtObjInner(1)<CR><Esc>gv
-  if !hasmapto('<Plug>RubyTextObjIn', 'v')
-    vmap <unique> <buffer> ir <Plug>RubyTextObjIn
+  vnoremap <silent> <buffer> <Plug>RubyTextObjectsIn :call <SID>RubyTextObjectsInner(1)<CR><Esc>gv
+  if !hasmapto('<Plug>RubyTextObjectsInner', 'v')
+    vmap <unique> <buffer> ir <Plug>RubyTextObjectsInner
   endif
 else
   " Unless we are testing, be merciless in this case
-  onoremap <silent> <buffer> <expr> ar <SID>RubyTxtObjOuter(0)
-  onoremap <silent> <buffer> <expr> ir <SID>RubyTxtObjInner(0)
-  vnoremap <silent> <buffer> ar :call <SID>RubyTxtObjOuter(1)<CR><Esc>gv
-  vnoremap <silent> <buffer> ir :call <SID>RubyTxtObjInner(1)<CR><Esc>gv
+  onoremap <silent> <buffer> <expr> ar <SID>RubyTextObjectsAll(0)
+  onoremap <silent> <buffer> <expr> ir <SID>RubyTextObjectsInner(0)
+  vnoremap <silent> <buffer> ar :call <SID>RubyTextObjectsAll(1)<CR><Esc>gv
+  vnoremap <silent> <buffer> ir :call <SID>RubyTextObjectsInner(1)<CR><Esc>gv
 endif
 
 " }}}1
 
-" Some shared variables {{{1
+" Script variables {{{1
 " Lines where this expression returns 1 will be skipped
 let s:skip_e  = 'getline(''.'') =~ ''^\s*#'' || synIDattr(synID(line("."), col("."), 0), "name") =~? ''\%(string\)\|\%(comment\)'''
 
@@ -64,24 +64,25 @@ let s:flags = 'Wn'
 
 " }}}1
 
-" Load guard for functions {{{1
-if exists('loaded_RubyTextObj') && !exists('testing_RubyTextObj')
+" Functions {{{1
+" Load guard {{{2
+if exists('loaded_RubyTextObjects') && !exists('testing_RubyTextObjects')
   " No need to beyond this twice, unless testing.
   finish
-elseif exists('testing_RubyTextObj')
+elseif exists('testing_RubyTextObjects')
   echom '----Loaded on: '.strftime("%Y %b %d %X")
 
-  function! Test() range " {{{2
+  function! Test() range
     return s:Match(a:firstline, 'start').', '.s:Match(a:firstline, 'middle').', '.s:Match(a:firstline, 'end')
     "  return s:FindTextObject(a:firstline, a:lastline, s:start_p, s:middle_p,
     "        \s:end_p, s:flags, s:skip_e)
-  endfunction " }}}2
+  endfunction
 
 endif
-let loaded_RubyTextObj = '0.1a'
- "}}}1
+let loaded_RubyTextObjects = '0.1a'
+ "}}}2
 
-function! s:RubyTxtObjOuter(visual) range "{{{1
+function! s:RubyTextObjectsAll(visual) range "{{{2
   let lastline      = line('$')
   let start         = 0
   let middle_p      = ''
@@ -134,9 +135,9 @@ function! s:RubyTxtObjOuter(visual) range "{{{1
     endif
   endif
 
-endfunction " }}}1
+endfunction " }}}2
 
-function! s:RubyTxtObjInner(visual) range "{{{1
+function! s:RubyTextObjectsInner(visual) range "{{{2
   let lastline      = line('$')
   let start         = 0
   let middle_p      = s:middle_p
@@ -209,14 +210,14 @@ function! s:RubyTxtObjInner(visual) range "{{{1
       return "\<Esc>"
     endif
   endif
-endfunction "}}}1
+endfunction "}}}2
 
-function! s:FindTextObject(first, last, start, middle, end, flags, skip) "{{{1
+function! s:FindTextObject(first, last, start, middle, end, flags, skip) "{{{2
 
   let first = {'start':0, 'end':0, 'range':0}
   let last  = {'start':0, 'end':0, 'range':0}
 
-  if a:first == a:last " Range is the current line {{{2
+  if a:first == a:last " Range is the current line {{{3
     " searchpair() starts looking at the cursor position. Find out where that
     " should be. Also determine if the current line should be searched.
     if s:Match(a:first, 'e')
@@ -243,7 +244,7 @@ function! s:FindTextObject(first, last, start, middle, end, flags, skip) "{{{1
 
     let result = [first.start, first.end]
 
-  else " Range is not the current line {{{2
+  else " Range is not the current line {{{3
 
     " Let's find a set with the first line of the range
     if s:Match(a:first, 'e')
@@ -319,9 +320,9 @@ function! s:FindTextObject(first, last, start, middle, end, flags, skip) "{{{1
 
   return result
 
-endfunction "}}}1
+endfunction "}}}2
 
-function! s:Match(line, part) " {{{1
+function! s:Match(line, part) " {{{2
   call cursor(a:line, 1)
   if a:part =~ '\ms\%[tart]'
     call search(s:start_p, 'cW', a:line)
@@ -337,4 +338,4 @@ function! s:Match(line, part) " {{{1
   endif
   "echom result
   return result
-endfunction " }}}1
+endfunction " }}}2
