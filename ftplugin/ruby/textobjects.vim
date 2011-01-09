@@ -1,4 +1,13 @@
-echom '----Loaded on: '.strftime("%Y %b %d %X")
+" File:        ftplugin/ruby/rubytextobj.vim
+" Version:     0.1a
+" Modified:    2011-01-00
+" Description: This ftplugin provides new text objects for Ruby.
+" Maintainer:  Israel Chauca F. <israelchauca@gmail.com>
+" Manual:      The new text objects are 'ir' and 'ar'. Place this file in
+"              'ftplugin/ruby/' inside $HOME/.vim or somewhere else in your
+"              runtimepath.
+" ============================================================================
+
 
 onoremap <expr><silent>ar RubyTxtObjOuter(0)
 onoremap <expr><silent>ir RubyTxtObjInner(0)
