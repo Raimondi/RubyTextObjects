@@ -310,7 +310,13 @@ function! s:FindTextObject(first, last, start, middle, end, flags, skip) "{{{2
         let result = [0,0]
       endif
     else
-      let result = [first.start, first.end]
+      if first.start == last.start
+        " first and last are the same
+        let result = [first.start, first.end]
+      else
+        " first and last are not the same
+        let result = [a:first, a:last]
+      endif
     endif
   endif "}}}2
 
