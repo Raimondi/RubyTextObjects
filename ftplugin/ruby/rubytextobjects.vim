@@ -46,18 +46,18 @@ endif
 
 " }}}1
 
-" Script variables {{{1
+" Variables {{{1
 " Lines where this expression returns 1 will be skipped
 let s:skip_e  = 'getline(''.'') =~ ''^\s*#'' || synIDattr(synID(line("."), col("."), 0), "name") =~? ''\%(string\)\|\%(comment\)'''
 
 " Start of the block matches this
-let s:start_p = '\%(\<def\>\|\<do\>\|\<module\>\|\<class\>\|\<case\>\|\%(^\|;\)\s*\%(\<if\>\|\<unless\>\|\<begin\>\|\<catch\>\|\<until\>\|\<while\>\|\<for\>\)\)'
+let s:start_p = '\C\v<do>|%(^|;)\s*%(<def>|<module>|<class>|<case>|<if>|<unless>|<begin>|<for>)|%(<until>|<while>|<catch>)%(.+do)?'
 
 " Middle of the block matches this
-let s:middle_p= '\%(^\|;\)\s*\%(\<els\%(e\|if\)\>\|\<rescue\>\|\<ensure\>\|\<when\>\)'
+let s:middle_p= '\C\v%(^|;)\s*%(<els%(e|if)>|<rescue>|<ensure>|<when>)'
 
 " End of the block matches this
-let s:end_p   = '\%(^\|;\)\s*\<end\>'
+let s:end_p   = '\C\v%(^|;)\s*<end>'
 
 " Don't wrap or move the cursor
 let s:flags = 'Wn'
