@@ -1,16 +1,19 @@
 " File:        ftplugin/ruby/rubytextobjects.vim
 " Version:     0.1a
-" Modified:    2011-01-00
+" Modified:    2011-00-00
 " Description: This ftplugin provides new text objects for Ruby files.
 " Maintainer:  Israel Chauca F. <israelchauca@gmail.com>
 " Manual:      The new text objects are 'ir' and 'ar'. Place this file in
 "              'ftplugin/ruby/' inside $HOME/.vim or somewhere else in your
 "              runtimepath.
-" Pending:     - How to handle do/end, outside of while/until/catch?
-"              - How to handle lines multiple statements separated by
-"                semicolons? Ignore them?
-"              - Considering the above, is Line Visual a good choice?
-"              - What am I missing as a ruby ignorant?
+" Pending:     - How to handle do/end, besides of while/until/catch? Should
+"                the whole line be selected or just from 'do' until 'end.*$'?
+"                or just until 'end'?
+"              - How to handle lines with multiple statements separated by
+"                semicolons? Ignore them (don't like the idea)?
+"              - Considering the above, is Line Visual a good choice to select
+"                the text?
+"              - As a Ruby ignorant, what am I missing?
 "
 " ============================================================================
 
