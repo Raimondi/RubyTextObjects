@@ -6,6 +6,8 @@
 " Manual:      The new text objects are 'ir' and 'ar'. Place this file in
 "              'ftplugin/ruby/' inside $HOME/.vim or somewhere else in your
 "              runtimepath.
+"              :let testing_RubyTextObjects = 1 to allow reloading of the
+"              plugin without closing Vim.
 " Pending:     - How to handle do/end, besides of while/until/catch? Should
 "                the whole line be selected or just from 'do' until 'end.*$'?
 "                or just until 'end'?
@@ -47,6 +49,10 @@ if !exists('testing_RubyTextObjects')
   endif
 else
   " Unless we are testing, be merciless in this case
+  silent! ounmap <buffer> ar
+  silent! ounmap <buffer> ir
+  silent! vunmap <buffer> ar
+  silent! vunmap <buffer> ir
   onoremap <silent> <buffer> <expr> ar <SID>RubyTextObjectsAll(0)
   onoremap <silent> <buffer> <expr> ir <SID>RubyTextObjectsInner(0)
   vnoremap <silent> <buffer> ar :call <SID>RubyTextObjectsAll(1)<CR><Esc>gv
