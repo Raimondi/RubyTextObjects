@@ -6,6 +6,12 @@
 " Manual:      The new text objects are 'ir' and 'ar'. Place this file in
 "              'ftplugin/ruby/' inside $HOME/.vim or somewhere else in your
 "              runtimepath.
+" Pending:     - How to handle do/end, outside of while/until/catch?
+"              - How to handle lines multiple statements separated by
+"                semicolons? Ignore them?
+"              - Considering the above, is Line Visual a good choice?
+"              - What am I missing as a ruby ignorant?
+"
 " ============================================================================
 
 " Mappings {{{1
