@@ -8,15 +8,10 @@
 "              runtimepath.
 "              :let testing_RubyTextObjects = 1 to allow reloading of the
 "              plugin without closing Vim.
-" Pending:     - How to handle do/end, besides of while/until/catch? Should
-"                the whole line be selected or just from 'do' until 'end.*$'?
-"                or just until 'end'?
-"              - How to handle lines with multiple statements separated by
-"                semicolons? Ignore them (don't like the idea)?
-"              - Considering the above, is Line Visual a good choice to select
-"                the text?
-"              - As a Ruby ignorant, what am I missing?
-"
+" Pending:     - Use Visual mode instead of Line Visual mode.
+"              - Optionally, first ar goes to do..end, second gets the rest of
+"                the line.
+"              - Ignore multiple statements per line.
 " ============================================================================
 
 " Mappings {{{1
