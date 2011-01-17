@@ -66,13 +66,13 @@ endif
 let s:skip_e  = 'getline(''.'') =~ ''^\s*#'' || synIDattr(synID(line("."), col("."), 0), "name") =~? ''\%(string\)\|\%(comment\)'''
 
 " Start of the block matches this
-let s:start_p = '\C\v<do>|%(^|;)\s*%(<def>|<module>|<class>|<case>|<if>|<unless>|<begin>|<for>)|%(<until>|<while>|<catch>)%(.+do)?'
+let s:start_p = '\C\v<do>|^\s*%(<def>|<module>|<class>|<case>|<if>|<unless>|<begin>|<for>|<until>|<while>|<catch>)%'
 
 " Middle of the block matches this
-let s:middle_p= '\C\v%(^|;)\s*%(<els%(e|if)>|<rescue>|<ensure>|<when>)'
+let s:middle_p= '\C\v^\s*%(<els%(e|if)>|<rescue>|<ensure>|<when>)'
 
 " End of the block matches this
-let s:end_p   = '\C\v%(^|;)\s*<end>'
+let s:end_p   = '\C\v^\s*<end>'
 
 " Don't wrap or move the cursor
 let s:flags = 'Wn'

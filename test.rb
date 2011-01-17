@@ -142,10 +142,12 @@ module A
   def a2
   end
 end
-module B; def b1 # This line is problematic
+module B
+  def b1 # This line is problematic
   end
   def b2
-  end; end # so is this
+  end
+end # so is this
 
 class Sample
   include A
