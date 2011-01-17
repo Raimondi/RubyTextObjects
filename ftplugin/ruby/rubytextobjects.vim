@@ -43,7 +43,7 @@ if !exists('testing_RubyTextObjects')
     vmap <unique> <buffer> ar <Plug>RubyTextObjectsAll
   endif
 
-  vnoremap <silent> <buffer> <Plug>RubyTextObjectsIn :call <SID>RubyTextObjectsInner(1)<CR><Esc>gv
+  vnoremap <silent> <buffer> <Plug>RubyTextObjectsInner :call <SID>RubyTextObjectsInner(1)<CR><Esc>gv
   if !hasmapto('<Plug>RubyTextObjectsInner', 'v')
     vmap <unique> <buffer> ir <Plug>RubyTextObjectsInner
   endif
