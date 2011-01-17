@@ -339,19 +339,19 @@ function! s:FindTextObject(first, last, start, middle, end, flags, skip) "{{{2
 endfunction "}}}2
 
 function! s:Match(line, part) " {{{2
-  call cursor(a:line, 1)
   if a:part =~? '\ms\%[tart]'
-    call search(s:start_p, 'cW', a:line)
-    let result = getline('.') =~# s:start_p && !eval(s:skip_e)
+    let part = s:start_p
   elseif a:part =~? '\mm\%[iddle]'
-    call search(s:middle_p, 'cW', a:line)
-    let result = getline('.') =~# s:middle_p && !eval(s:skip_e)
+    let part = s:middle_p
   elseif a:part =~? '\me\%[nd]'
-    call search(s:end_p, 'cW', a:line)
-    let result = getline('.') =~# s:end_p && !eval(s:skip_e)
+    let part = s:end_p
   else
     throw 'Oops!'
   endif
+  call cursor(a:line, 1)
+  call search(part, 'cW', a:line)
+  "let result = getline('.') =~# part && !eval(s:skip_e)
+  let result = search(part, 'cW', a:line) > 0 && !eval(s:skip_e)
   "echom result
   return result
 endfunction " }}}2
