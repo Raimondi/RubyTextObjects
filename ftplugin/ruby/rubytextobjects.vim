@@ -328,7 +328,7 @@ function! s:FindTextObject(first, last, start, middle, end, flags, skip) "{{{2
         let result = [a:first, a:last]
       endif
     endif
-  endif "}}}2
+  endif "}}}3
 
   "echom string(result) . ', first: ' . string(first) . ', last' .
   "      \ string(last) . ', epos: ' . epos . ', spos: ' . spos .
