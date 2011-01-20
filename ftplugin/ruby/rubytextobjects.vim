@@ -97,29 +97,29 @@ let loaded_RubyTextObjects = '0.1a'
 
 function! s:RubyTextObjectsAll(visual) range "{{{2
   let lastline      = line('$')
-  let start         = 0
+  let start         = [0,0]
   let middle_p      = ''
-  let end           = -1
+  let end           = [-1,0]
   let count1        = v:count1
-  let visual        = visualmode() ==# 'V'
 
-  let t_start = a:firstline + 1
-  let t_end   = a:lastline  - 1
+  let t_start = [a:firstline + 1, 0]
+  let t_end   = [a:lastline  - 1, 0]
   let passes  = 0
 
   let match_both_outer = (
-        \ s:Match(t_start - 1, 'start') &&
-        \ s:Match(t_end + 1, 'end'))
+        \ s:Match(t_start[0] - 1, 'start') &&
+        \ s:Match(t_end[0] + 1, 'end'))
   while  count1 > 0 &&
-        \ (!(count1 > 1) || (t_start - 1 > 1 && t_end + 1 < lastline))
+        \ (!(count1 > 1) || (t_start[0] - 1 > 1 && t_end[0] + 1 < lastline))
     let passes  += 1
-    let t_start -= 1
-    let t_end   += 1
+    "let t_start[0] -= 1
+    "let t_end[0]   += 1
 
-    let [t_start, t_end] = s:FindTextObject(t_start, t_end, s:start_p, middle_p,
+    let [t_start, t_end] = s:FindTextObject([t_start[0] - 1, 0], [t_end[0] + 1, 0], s:start_p, middle_p,
           \ s:end_p, s:flags, s:skip_e)
 
-    if t_start > 0 && t_end > 0
+    "echom string(t_start).';'.string(t_end).':'.passes
+    if t_start[0] > 0 && t_end[0] > 0
       let start = t_start
       let end   = t_end
     else
@@ -127,21 +127,24 @@ function! s:RubyTextObjectsAll(visual) range "{{{2
     endif
 
     if match_both_outer &&
-          \ start == a:firstline && end == a:lastline && passes == 1
+          \ start[0] == a:firstline && end[0] == a:lastline && passes == 1
       continue
     endif
     let count1  -= 1
   endwhile
 
   if a:visual
-    if end >= start && start >= 1 && end >= 1
+    if end[0] >= start[0] && start[0] >= 1 && end[0] >= 1
       " Do magic
-      exec "normal! \<Esc>".start.'G0V'.end."G"
+      exec "normal! \<Esc>"
+      call cursor(start)
+      exec "normal! v".end[0]."G^e"
+      "echom string(start).';'.string(end).':'.passes
     endif
   else
-    if end >= start && start >= 1 && end >= 1
+    if end[0] >= start[0] && start[0] >= 1 && end[0] >= 1
       " Do magic
-      return ':exec "normal! '.start.'G0V'.end."G\"\<CR>"
+      return ':exec "normal! '.start.'G0V'.end."G\"\<CR>$"
     else
       " No pair found, do nothing
       return "\<Esc>"
