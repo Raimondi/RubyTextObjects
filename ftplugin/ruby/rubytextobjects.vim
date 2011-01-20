@@ -352,7 +352,7 @@ function! s:Match(line, part) " {{{2
     throw 'Oops!'
   endif
   call cursor(a:line, 1)
-  call search(part, 'cW', a:line)
+  "call search(part, 'cW', a:line)
   "let result = getline('.') =~# part && !eval(s:skip_e)
   let result = search(part, 'cW', a:line) > 0 && !eval(s:skip_e)
   "echom result
