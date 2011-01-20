@@ -60,14 +60,17 @@ endif
 " Lines where this expression returns 1 will be skipped
 let s:skip_e  = 'getline(''.'') =~ ''^\s*#'' || synIDattr(synID(line("."), col("."), 0), "name") =~? ''\%(string\)\|\%(comment\)'''
 
+" List of words that start a block at the beginning of the line
+let s:beg_words = '<def>|<module>|<class>|<case>|<if>|<unless>|<begin>|<for>|<until>|<while>|<catch>'
+
 " Start of the block matches this
-let s:start_p = '\C\v<do>|^\s*%(<def>|<module>|<class>|<case>|<if>|<unless>|<begin>|<for>|<until>|<while>|<catch>)%'
+let s:start_p = '\C\v(^\s*\zs%('.s:beg_words.').*)@<!<do>|^\s*\zs%('.s:beg_words.')'
 
 " Middle of the block matches this
-let s:middle_p= '\C\v^\s*%(<els%(e|if)>|<rescue>|<ensure>|<when>)'
+let s:middle_p= '\C\v^\s*\zs%(<els%(e|if)>|<rescue>|<ensure>|<when>)'
 
 " End of the block matches this
-let s:end_p   = '\C\v^\s*<end>'
+let s:end_p   = '\C\v^\s*\zs<end>'
 
 " Don't wrap or move the cursor
 let s:flags = 'Wn'
