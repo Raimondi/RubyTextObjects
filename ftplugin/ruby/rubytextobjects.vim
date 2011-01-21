@@ -85,10 +85,21 @@ if exists('loaded_RubyTextObjects') && !exists('testing_RubyTextObjects')
 elseif exists('testing_RubyTextObjects')
   echom '----Loaded on: '.strftime("%Y %b %d %X")
 
-  function! Test() range
-    return s:Match(a:firstline, 'start').', '.s:Match(a:firstline, 'middle').', '.s:Match(a:firstline, 'end')
-    "  return s:FindTextObject(a:firstline, a:lastline, s:start_p, s:middle_p,
-    "        \s:end_p, s:flags, s:skip_e)
+  function! Test(test,...) range
+    if a:test == 1
+      return s:Match(a:firstline, 'start').', '.s:Match(a:firstline, 'middle').', '.s:Match(a:firstline, 'end')
+    elseif a:test == 2
+      return s:FindTextObject([a:firstline,0], [a:lastline,0], s:start_p, s:middle_p,
+            \s:end_p, s:flags, s:skip_e)
+    elseif a:test == 3
+      return searchpairpos(s:start_p, s:middle_p, s:end_p, a:1, s:skip_e)
+    elseif a:test == 4
+      return match(getline('.'), 'bWn')
+    elseif a:test == 5
+      return searchpos(s:start_p,'bn')
+    else
+      throw 'Ooops!'
+    endif
   endfunction
 
 endif
