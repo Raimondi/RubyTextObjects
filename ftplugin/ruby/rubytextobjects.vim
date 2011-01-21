@@ -255,6 +255,10 @@ function! s:FindTextObject(first, last, start, middle, end, flags, skip) "{{{2
       let sflags = a:flags.'bc'
     endif
 
+    " Let's see where they are
+    call cursor(a:first[0], spos)
+    let first.start  = searchpairpos(a:start,a:middle,a:end,sflags,a:skip)
+
     if s:Match(a:first[0], 's')
       let epos   = 9999
       let eflags = a:flags
@@ -264,8 +268,6 @@ function! s:FindTextObject(first, last, start, middle, end, flags, skip) "{{{2
     endif
 
     " Let's see where they are
-    call cursor(a:first[0], spos)
-    let first.start  = searchpairpos(a:start,a:middle,a:end,sflags,a:skip)
     call cursor(a:first[0], epos)
     let first.end    = searchpairpos(a:start,a:middle,a:end,eflags,a:skip)
 
