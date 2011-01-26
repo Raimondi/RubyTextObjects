@@ -1,0 +1,38 @@
+# Generic
+# Check for mappings with filetype plugin on
+ge001.vim
+
+# - Visual All
+# Sample 1, go to 'class' and :norm vard
+va001.vim
+# Sample 1, go to 'end' and :norm vard
+va002.vim
+# Sample 6, go to second to last 'end' and :norm varard
+va003.vim
+# Sample 6, go to second start of block and :norm varard
+va004.vim
+# Sample 6, go to the middle and :norm vard
+va005.vim
+# Sample 6, go to the middle and :norm varard
+va006.vim
+# Sample 6, go to the middle and :norm vararard
+va007.vim
+# Sample 6, go to first line outside block and :norm vard
+va008.vim
+# Sample 6, go to last line outside block and :norm vard
+va009.vim
+# Sample 11, go to first line inside block and :norm vard
+va010.vim
+# Sample 5, go to first line inside nested block and :norm vard, needs
+# syntax on to ignore keywords inside strings
+va011.vim
+
+# - Visual In
+# Sample 1, go to 'class' and :norm vird
+#vi001.vim
+# Sample 1, go to 'end' and :norm vird
+#vi002.vim
+
+# - Operator Pending All
+
+# - Operator Pending In
