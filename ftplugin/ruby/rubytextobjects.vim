@@ -14,12 +14,13 @@
 "              - Ignore multiple statements per line.
 " ============================================================================
 
-" Mappings {{{1
+" Allow users to disable ftplugins
 if exists('no_plugin_maps') || exists('no_ruby_maps')
   " User doesn't want this functionality.
   finish
 endif
 
+" Mappings {{{1
 if !exists('testing_RubyTextObjects')
   " Be nice with existing mappings
 
