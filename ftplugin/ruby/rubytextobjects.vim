@@ -168,78 +168,86 @@ endfunction " }}}2
 
 function! s:RubyTextObjectsInner(visual) range "{{{2
   let lastline      = line('$')
-  let start         = 0
-  let middle_p      = s:middle_p
-  let end           = -1
-  let count1        = v:count1
-  let visual        = a:visual ? visualmode() ==# 'V' : 0
+  let start         = [0,0]
+  let middle_p      = ''
+  let end           = [-1,0]
+  let count1        = v:count1 < 1 ? 1 : v:count1
 
-  let t_start = a:firstline
-  let t_end   = a:lastline
-  let passes  = 0
-
-  let match_both_outer = (
-        \ s:Match(t_start - 1, 'start') &&
-        \ s:Match(t_end + 1, 'end'))
-  let start_matches = s:Match(t_start, 'start')
-  let middle_matches= s:Match(a:firstline, 'm')
-  let end_matches   = s:Match(t_end, 'e')
-
-  while  count1 > 0 &&
-        \ (!(count1 > 1) || (t_start - 1 > 1 && t_end + 1 < lastline))
-    let passes += 1
-
-    " If a middle pattern is matched, use it as start
-    if passes == 1 && middle_matches
-      let t_end   += 1
-    elseif passes > 1 || (!start_matches && !end_matches) || visual
-      let t_start -= 1
-      let t_end   += 1
+  " If called from visual mode, find out if it looks like a recursive ir and
+  " if a whole block was selected
+  let is_rec      = 0
+  let is_block    = 0
+  if a:visual
+    if getpos("'<")[2] == 1 &&
+          \ getpos("'>")[2] == len(getline(getpos("'>")[1])) + 1 &&
+          \ visualmode() == 'v'
+      " It looks recursive
+      let is_rec = 1
     endif
+    let x = s:FindTextObject([a:firstline, 0],[a:lastline, 0], s:start_p, middle_p, s:end_p, s:flags, s:skip_e)
+    if [[a:firstline, x[0][1]],[a:lastline, x[1][1]]] == x
+      " It looks like a whole block
+      let is_block = 1
+    endif
+  endif
 
-    let [t_start, t_end] = s:FindTextObject(t_start, t_end, s:start_p,
-          \ s:middle_p, s:end_p, s:flags, s:skip_e)
+  " Add 1 if a start or middle of block don't match
+  let t_start = [a:firstline + 1, 0]
+  " Substract 1 if end doesn't match
+  let t_end   = [a:lastline  - 1, 0]
+  if is_rec && is_block
+    let t_start[0] -= 1
+    let t_end[0]   += 1
+  else
+    let t_start[0] -= !(s:Match(a:firstline, 'start') || s:Match(a:firstline, 'middle') || s:Match(a:lastline, 'end'))
+    let t_end[0]   += !(s:Match(a:firstline, 'start') || s:Match(a:firstline, 'middle') || s:Match(a:lastline, 'end'))
+  endif
+  let passes  = 0
+  let initial = [t_start[0] - 1, t_end[0] + 1]
 
-    if t_start > 0 && t_end > 0
+  echom '[is_rec, is_block]: ['.is_rec.', '.is_block.'], t_start, t_end: '.t_start[0].', '.t_end[0] .', x: '.string(x)
+
+  while  count1 > 0 && x != [[0,0],[0,0]] &&
+        \ (!(count1 > 1) || (t_start[0] - 1 >= 1 && t_end[0] + 1 < lastline))
+    let passes  += 1
+
+    let [t_start, t_end] = s:FindTextObject([t_start[0] - 1, 0], [t_end[0] + 1, 0], s:start_p, s:middle_p,
+          \ s:end_p, s:flags, s:skip_e)
+    echom 't_start, t_end: '.string(t_start).','.string(t_end).':'.passes
+
+    "echom string(t_start).';'.string(t_end).':'.passes
+    if t_start[0] > 0 && t_end[0] > 0
       let start = t_start
       let end   = t_end
     else
       break
     endif
 
-    if match_both_outer &&
-          \ start == (a:firstline - 1) && end == (a:lastline + 1) &&
-          \ passes == 1 && visual
+    echom 'initial: '.string(initial).', final: ['.(start[0]).', '.(end[0]).']'
+    if (is_block || is_rec) && passes == 1 && [start[0], end[0]] == initial
       continue
     endif
     let count1  -= 1
   endwhile
 
-  if (end - start) > 1
-    " There is an inner section, use it
-    let start += 1
-    let end   -= 1
-  else
-    " There is no inner section, nothing to do
-    let start = 0
-    let end = 0
-  endif
-
   if a:visual
-    if end >= start && start >= 1 && end >= 1
-      " Do magic for visual mapping
-      exec "normal! \<Esc>".start.'G0V'.end."G"
+    if end[0] >= start[0] && start[0] >= 1 && end[0] >= 1
+      " Do magic
+      exec "normal! \<Esc>".(start[0] + 1).'G'
+      exec "normal! 0v".(end[0] - 1)."G$"
+      "echom string(start).';'.string(end).':'.passes
     endif
   else
-    if end >= start && start >= 1 && end >= 1
-      " Do magic for operator pending mapping
-      return ':exec "normal! '.start.'G0V'.end."G\"\<CR>"
+    if end[0] >= start[0] && start[0] >= 1 && end[0] >= 1
+      " Do magic
+      return ':exec "normal! '.start.'G0V'.end."G\"\<CR>$"
     else
-      " No pair found, cancel operator
+      " No pair found, do nothing
       return "\<Esc>"
     endif
   endif
-endfunction "}}}2
+
+endfunction " }}}2
 
 function! s:FindTextObject(first, last, start, middle, end, flags, skip) "{{{2
 
@@ -328,6 +336,9 @@ function! s:FindTextObject(first, last, start, middle, end, flags, skip) "{{{2
       if first.start[0] <= last.start[0] && first.end[0] >= last.end[0]
         " last is inside first
         let result = [first.start, first.end]
+      elseif last.range == 0
+        " Last is null
+        let result = [first.start, first.end]
       else
         " Something is wrong, last is not inside first
         let result = [[0,0],[0,0]]
@@ -335,6 +346,9 @@ function! s:FindTextObject(first, last, start, middle, end, flags, skip) "{{{2
     elseif first.range < last.range
       if first.start[0] >= last.start[0] && first.end[0] <= last.end[0]
         " first is inside last
+        let result = [last.start, last.end]
+      elseif first.range == 0
+        " first is null
         let result = [last.start, last.end]
       else
         " Something is wrong, first is not inside last
