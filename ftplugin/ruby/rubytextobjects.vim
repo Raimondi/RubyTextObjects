@@ -113,7 +113,7 @@ function! s:RubyTextObjectsAll(visual) range "{{{2
   let start         = [0,0]
   let middle_p      = ''
   let end           = [-1,0]
-  let count1        = v:count1
+  let count1        = v:count1 < 1 ? 1 : v:count1
 
   let t_start = [a:firstline + 1, 0]
   let t_end   = [a:lastline  - 1, 0]
