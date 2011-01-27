@@ -102,6 +102,7 @@ elseif exists('testing_RubyTextObjects')
       throw 'Ooops!'
     endif
   endfunction
+  command! -bar -range -buffer -nargs=+ Test echom string(Test(<f-args>))
 
 endif
 let loaded_RubyTextObjects = '0.1a'
