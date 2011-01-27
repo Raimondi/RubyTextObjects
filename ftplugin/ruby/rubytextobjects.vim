@@ -65,7 +65,7 @@ let s:skip_e  = 'getline(''.'') =~ ''^\s*#'' || synIDattr(synID(line("."), col("
 let s:beg_words = '<def>|<module>|<class>|<case>|<if>|<unless>|<begin>|<for>|<until>|<while>|<catch>'
 
 " Start of the block matches this
-let s:start_p = '\C\v^\s*\zs%('.s:beg_words.')|%('.s:beg_words.'.*)@<!<do>'
+let s:start_p = '\C\v^\s*\zs%('.s:beg_words.')|%(%('.s:beg_words.').*)@<!<do>'
 
 " Middle of the block matches this
 let s:middle_p= '\C\v^\s*\zs%(<els%(e|if)>|<rescue>|<ensure>|<when>)'
