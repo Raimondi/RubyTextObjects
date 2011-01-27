@@ -90,8 +90,8 @@ elseif exists('testing_RubyTextObjects')
     if a:test == 1
       return s:Match(a:firstline, 'start').', '.s:Match(a:firstline, 'middle').', '.s:Match(a:firstline, 'end')
     elseif a:test == 2
-      return s:FindTextObject([a:firstline,0], [a:lastline,0], s:start_p, s:middle_p,
-            \s:end_p, s:flags, s:skip_e)
+      return s:FindTextObject([a:firstline,0], [a:lastline,0], s:start_p,
+            \ s:middle_p, s:end_p, s:flags, s:skip_e)
     elseif a:test == 3
       return searchpairpos(s:start_p, s:middle_p, s:end_p, a:1, s:skip_e)
     elseif a:test == 4
