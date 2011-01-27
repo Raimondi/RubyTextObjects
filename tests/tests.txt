@@ -26,6 +26,10 @@ va010.vim
 # Sample 5, go to first line inside nested block and :norm vard, needs
 # syntax on to ignore keywords inside strings
 va011.vim
+# Sample 6, go to second to last 'end' and :norm vGard
+va012.vim
+# Sample 6, go to start of first nested block and :norm vggard
+va013.vim
 
 # - Visual In
 # Sample 1, go to 'class' and :norm vird
@@ -51,6 +55,14 @@ vi010.vim
 # Sample 5, go to first line inside nested block and :norm vird, needs
 # syntax on to ignore keywords inside strings
 vi011.vim
+# Sample 6, go to last end and norm vird
+vi012.vim
+# Sample 6, go to first header and norm vird
+vi013.vim
+# Sample 6, go to second to last 'end' and :norm vGird
+vi014.vim
+# Sample 6, go to start of first nested block and :norm vggird
+vi015.vim
 
 # - Operator Pending All
 
