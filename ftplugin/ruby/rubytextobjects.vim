@@ -169,50 +169,61 @@ endfunction " }}}2
 function! s:RubyTextObjectsInner(visual) range "{{{2
   let lastline      = line('$')
   let start         = [0,0]
-  let middle_p      = ''
+  let middle_p      = s:middle_p
   let end           = [-1,0]
   let count1        = v:count1 < 1 ? 1 : v:count1
+  let initial       = [a:firstline, a:lastline]
 
   " If called from visual mode, find out if it looks like a recursive ir and
-  " if a whole block was selected
+  " if a whole block is selected
   let is_rec      = 0
   let is_block    = 0
   if a:visual
+    let x = s:FindTextObject([a:firstline, 0],[a:lastline, 0], s:start_p, middle_p, s:end_p, s:flags, s:skip_e)
+    if [[a:firstline, x[0][1]],[a:lastline, x[1][1]]] == x
+      " It is a whole block
+      let is_block = 1
+    endif
     if getpos("'<")[2] == 1 &&
           \ getpos("'>")[2] == len(getline(getpos("'>")[1])) + 1 &&
           \ visualmode() == 'v'
       " It looks recursive
-      let is_rec = 1
-    endif
-    let x = s:FindTextObject([a:firstline, 0],[a:lastline, 0], s:start_p, middle_p, s:end_p, s:flags, s:skip_e)
-    if [[a:firstline, x[0][1]],[a:lastline, x[1][1]]] == x
-      " It looks like a whole block
-      let is_block = 1
+      if is_block
+        " It is recursive, with a whole block
+        let is_rec = 2
+      elseif [[a:firstline - 1, x[0][1]],[a:lastline + 1, x[1][1]]] == x
+        " It is recursive, with an inner block
+        let is_rec = 1
+      endif
     endif
   endif
 
-  " Add 1 if a start or middle of block don't match
-  let t_start = [a:firstline + 1, 0]
-  " Substract 1 if end doesn't match
-  let t_end   = [a:lastline  - 1, 0]
-  if is_rec && is_block
+    let [t_start, t_end] = x
+    "let t_start = [a:firstline, 0]
+    "let t_end   = [a:lastline,  0]
+    "if is_rec && is_block
+    "  let t_start[0] -= 1
+    "  let t_end[0]   += 1
+    "else
+    "" Add 1 if it doesn't match
+    "  let t_start[0] -= !(s:Match(a:firstline, 'start') || s:Match(a:firstline, 'middle') || s:Match(a:lastline, 'end'))
+    "" Substract 1 if it doesn't match
+    "  let t_end[0]   += !(s:Match(a:firstline, 'start') || s:Match(a:firstline, 'middle') || s:Match(a:lastline, 'end'))
+    "endif
+  let [start, end] = x
+  let passes  = 0
+
+  let one_more = ((is_block && [start[0], end[0]] == initial) || is_rec)
+  if one_more && is_rec == 2
     let t_start[0] -= 1
     let t_end[0]   += 1
-  else
-    let t_start[0] -= !(s:Match(a:firstline, 'start') || s:Match(a:firstline, 'middle') || s:Match(a:lastline, 'end'))
-    let t_end[0]   += !(s:Match(a:firstline, 'start') || s:Match(a:firstline, 'middle') || s:Match(a:lastline, 'end'))
   endif
-  let passes  = 0
-  let initial = [t_start[0] - 1, t_end[0] + 1]
-
-  echom '[is_rec, is_block]: ['.is_rec.', '.is_block.'], t_start, t_end: '.t_start[0].', '.t_end[0] .', x: '.string(x)
-
-  while  count1 > 0 && x != [[0,0],[0,0]] &&
+  echom '[is_rec, is_block]: ['.is_rec.', '.is_block.'], t_start, t_end: '.t_start[0].', '.t_end[0] .', x: '.string(x).', one_more: '.one_more
+  while  (count1 > 1 || one_more) && x != [[0,0],[0,0]] &&
         \ (!(count1 > 1) || (t_start[0] - 1 >= 1 && t_end[0] + 1 < lastline))
-    let passes  += 1
 
-    let [t_start, t_end] = s:FindTextObject([t_start[0] - 1, 0], [t_end[0] + 1, 0], s:start_p, s:middle_p,
-          \ s:end_p, s:flags, s:skip_e)
+    let passes  += 1
+    let [t_start, t_end] = s:FindTextObject([t_start[0] - 1, 0], [t_end[0] + 1, 0], s:start_p, s:middle_p, s:end_p, s:flags, s:skip_e)
     echom 't_start, t_end: '.string(t_start).','.string(t_end).':'.passes
 
     "echom string(t_start).';'.string(t_end).':'.passes
@@ -224,7 +235,8 @@ function! s:RubyTextObjectsInner(visual) range "{{{2
     endif
 
     echom 'initial: '.string(initial).', final: ['.(start[0]).', '.(end[0]).']'
-    if (is_block || is_rec) && passes == 1 && [start[0], end[0]] == initial
+    if one_more
+      let one_more = 0
       continue
     endif
     let count1  -= 1
