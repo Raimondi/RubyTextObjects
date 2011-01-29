@@ -125,9 +125,8 @@ function! s:RubyTextObjectsAll(visual) range "{{{2
   while  count1 > 0 &&
         \ (!(count1 > 1) || (t_start[0] - 1 > 1 && t_end[0] + 1 < lastline))
     let passes  += 1
-    "let t_start[0] -= 1
-    "let t_end[0]   += 1
 
+    " Let's get some luv
     let [t_start, t_end] = s:FindTextObject([t_start[0] - 1, 0], [t_end[0] + 1, 0], s:start_p, middle_p,
           \ s:end_p, s:flags, s:skip_e)
 
@@ -139,8 +138,9 @@ function! s:RubyTextObjectsAll(visual) range "{{{2
       break
     endif
 
-    if match_both_outer &&
-          \ start[0] == a:firstline && end[0] == a:lastline && passes == 1
+    " Repeat if necessary
+    if match_both_outer && passes == 1 &&
+          \ start[0] == a:firstline && end[0] == a:lastline
       continue
     endif
     let count1  -= 1
@@ -148,16 +148,26 @@ function! s:RubyTextObjectsAll(visual) range "{{{2
 
   if a:visual
     if end[0] >= start[0] && start[0] >= 1 && end[0] >= 1
-      " Do magic
+      " Do visual magic
       exec "normal! \<Esc>"
       call cursor(start)
-      exec "normal! v".end[0]."G^e"
+      exec "normal! v".end[0]."G$h"
       "echom string(start).';'.string(end).':'.passes
     endif
   else
     if end[0] >= start[0] && start[0] >= 1 && end[0] >= 1
-      " Do magic
-      return ':exec "normal! '.start.'G0V'.end."G\"\<CR>$"
+      " Do operator pending magic
+      "echom getline(start[0])[:start[1] - 2]
+      if start[1] <= 1 || getline(start[0])[:start[1] - 2] =~ '^\s*$'
+        " Delete whole lines
+        let to_eol   = '$'
+        let from_bol = '0'
+      else
+        " Don't delete text behind start of block and leave one <CR>
+        let to_eol   = '$h'
+        let from_bol = ''
+      endif
+      return ':call cursor('.string(start).')|exec "normal! '.from_bol.'v'.end[0]."G".to_eol."\"\<CR>"
     else
       " No pair found, do nothing
       return "\<Esc>"
@@ -178,53 +188,40 @@ function! s:RubyTextObjectsInner(visual) range "{{{2
   " if a whole block is selected
   let is_rec      = 0
   let is_block    = 0
-  if a:visual
-    let x = s:FindTextObject([a:firstline, 0],[a:lastline, 0], s:start_p, middle_p, s:end_p, s:flags, s:skip_e)
-    if [[a:firstline, x[0][1]],[a:lastline, x[1][1]]] == x
-      " It is a whole block
-      let is_block = 1
-    endif
-    if getpos("'<")[2] == 1 &&
-          \ getpos("'>")[2] == len(getline(getpos("'>")[1])) + 1 &&
-          \ visualmode() == 'v'
-      " It looks recursive
-      if is_block
-        " It is recursive, with a whole block
-        let is_rec = 2
-      elseif [[a:firstline - 1, x[0][1]],[a:lastline + 1, x[1][1]]] == x
-        " It is recursive, with an inner block
-        let is_rec = 1
-      endif
+  let first_TO = s:FindTextObject([a:firstline, 0],[a:lastline, 0], s:start_p, middle_p, s:end_p, s:flags, s:skip_e)
+  if [[a:firstline, first_TO[0][1]],[a:lastline, first_TO[1][1]]] == first_TO
+    " It is a whole block
+    let is_block = 1
+  endif
+  if getpos("'<")[2] == 1 &&
+        \ getpos("'>")[2] == len(getline(getpos("'>")[1])) + 1 &&
+        \ visualmode() == 'v'
+    " It looks recursive
+    if is_block
+      " It is recursive, with a whole block
+      let is_rec = 2
+    elseif [[a:firstline - 1, first_TO[0][1]],[a:lastline + 1, first_TO[1][1]]] == first_TO
+      " It is recursive, with an inner block
+      let is_rec = 1
     endif
   endif
 
-    let [t_start, t_end] = x
-    "let t_start = [a:firstline, 0]
-    "let t_end   = [a:lastline,  0]
-    "if is_rec && is_block
-    "  let t_start[0] -= 1
-    "  let t_end[0]   += 1
-    "else
-    "" Add 1 if it doesn't match
-    "  let t_start[0] -= !(s:Match(a:firstline, 'start') || s:Match(a:firstline, 'middle') || s:Match(a:lastline, 'end'))
-    "" Substract 1 if it doesn't match
-    "  let t_end[0]   += !(s:Match(a:firstline, 'start') || s:Match(a:firstline, 'middle') || s:Match(a:lastline, 'end'))
-    "endif
-  let [start, end] = x
+  let [t_start, t_end] = first_TO
+  let [start, end] = first_TO
   let passes  = 0
 
-  let one_more = ((is_block && [start[0], end[0]] == initial) || is_rec)
+  let one_more = ((is_block && [start[0], end[0]] == initial) || is_rec) && a:visual
   if one_more && is_rec == 2
     let t_start[0] -= 1
     let t_end[0]   += 1
   endif
-  echom '[is_rec, is_block]: ['.is_rec.', '.is_block.'], t_start, t_end: '.t_start[0].', '.t_end[0] .', x: '.string(x).', one_more: '.one_more
-  while  (count1 > 1 || one_more) && x != [[0,0],[0,0]] &&
+  "echom '[is_rec, is_block]: ['.is_rec.', '.is_block.'], t_start, t_end: '.t_start[0].', '.t_end[0] .', first_TO: '.string(first_TO).', one_more: '.one_more
+  while  (count1 > 1 || one_more) && first_TO != [[0,0],[0,0]] &&
         \ (!(count1 > 1) || (t_start[0] - 1 >= 1 && t_end[0] + 1 < lastline))
 
     let passes  += 1
     let [t_start, t_end] = s:FindTextObject([t_start[0] - 1, 0], [t_end[0] + 1, 0], s:start_p, s:middle_p, s:end_p, s:flags, s:skip_e)
-    echom 't_start, t_end: '.string(t_start).','.string(t_end).':'.passes
+    "echom 't_start, t_end: '.string(t_start).','.string(t_end).':'.passes
 
     "echom string(t_start).';'.string(t_end).':'.passes
     if t_start[0] > 0 && t_end[0] > 0
@@ -234,7 +231,7 @@ function! s:RubyTextObjectsInner(visual) range "{{{2
       break
     endif
 
-    echom 'initial: '.string(initial).', final: ['.(start[0]).', '.(end[0]).']'
+    "echom 'initial: '.string(initial).', final: ['.(start[0]).', '.(end[0]).']'
     if one_more
       let one_more = 0
       continue
@@ -243,16 +240,16 @@ function! s:RubyTextObjectsInner(visual) range "{{{2
   endwhile
 
   if a:visual
-    if end[0] >= start[0] && start[0] >= 1 && end[0] >= 1
-      " Do magic
+    if end[0] >= start[0] && start[0] >= 1 && end[0] >= 1 && end[0] - start[0] > 1
+      " Do visual magic
       exec "normal! \<Esc>".(start[0] + 1).'G'
       exec "normal! 0v".(end[0] - 1)."G$"
       "echom string(start).';'.string(end).':'.passes
     endif
   else
-    if end[0] >= start[0] && start[0] >= 1 && end[0] >= 1
-      " Do magic
-      return ':exec "normal! '.start.'G0V'.end."G\"\<CR>$"
+    if end[0] >= start[0] && start[0] >= 1 && end[0] >= 1 && end[0] - start[0] > 1
+      " Do operator pending magic
+      return ':exec "normal! '.(start[0] + 1).'G0v'.(end[0] - 1)."G$\"\<CR>"
     else
       " No pair found, do nothing
       return "\<Esc>"
