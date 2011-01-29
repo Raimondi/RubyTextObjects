@@ -1,8 +1,8 @@
-# Generic
+# Generic {{{1
 # Check for mappings with filetype plugin on
 ge001.vim
 
-# - Visual All
+# - Visual All {{{1
 # Sample 1, go to 'class' and :norm vard
 va001.vim
 # Sample 1, go to 'end' and :norm vard
@@ -31,7 +31,7 @@ va012.vim
 # Sample 6, go to start of first nested block and :norm vggard
 va013.vim
 
-# - Visual In
+# - Visual Inner {{{1
 # Sample 1, go to 'class' and :norm vird
 vi001.vim
 # Sample 1, go to 'end' and :norm vird
@@ -64,6 +64,42 @@ vi014.vim
 # Sample 6, go to start of first nested block and :norm vggird
 vi015.vim
 
-# - Operator Pending All
+# - Operator Pending All {{{1
+# Sample 1, go to 'class' and :norm dar
+oa001.vim
+# Sample 1, go to 'end' and :norm dar
+oa002.vim
+# Sample 6, go to the middle and :norm dar
+oa003.vim
+# Sample 6, go to first line outside block and :norm dar
+oa004.vim
+# Sample 6, go to last line outside block and :norm dar
+oa005.vim
+# Sample 11, go to first line inside block and :norm dar
+oa006.vim
+# Sample 5, go to first line inside nested block and :norm dar, needs
+# syntax on to ignore keywords inside strings
+oa007.vim
 
-# - Operator Pending In
+# - Operator Pending Inner {{{1
+# Sample 1, go to 'class' and :norm dir
+oi001.vim
+# Sample 1, go to 'end' and :norm dir
+oi002.vim
+# Sample 6, go to the middle and :norm dir
+oi003.vim
+# Sample 6, go to first line outside block and :norm dir
+oi004.vim
+# Sample 6, go to last line outside block and :norm dir
+oi005.vim
+# Sample 11, go to first line inside block and :norm dir
+oi006.vim
+# Sample 5, go to first line inside nested block and :norm dir, needs
+# syntax on to ignore keywords inside strings
+oi007.vim
+# Sample 6, go to last end and norm dir
+oi008.vim
+# Sample 6, go to first header and norm dir
+oi009.vim
+
+# vim: set fdm=marker tw=78: {{{1
