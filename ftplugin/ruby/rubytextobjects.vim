@@ -21,25 +21,30 @@ if exists('no_plugin_maps') || exists('no_ruby_maps')
 endif
 
 " Mappings {{{1
+onoremap <silent> <buffer> <expr> <Plug>RubyTextObjectsAll
+      \ <SID>RubyTextObjectsAll(0)
+onoremap <silent> <buffer> <expr> <Plug>RubyTextObjectsInner
+      \ <SID>RubyTextObjectsInner(0)
+vnoremap <silent> <buffer> <Plug>RubyTextObjectsAll :call
+      \ <SID>RubyTextObjectsAll(1)<CR><Esc>gv
+vnoremap <silent> <buffer> <Plug>RubyTextObjectsInner :call
+      \ <SID>RubyTextObjectsInner(1)<CR><Esc>gv
+
 if !exists('testing_RubyTextObjects')
   " Be nice with existing mappings
 
-  onoremap <silent> <buffer> <expr> <Plug>RubyTextObjectsAll <SID>RubyTextObjectsAll(0)
   if !hasmapto('<Plug>RubyTextObjectsAll', 'o')
     omap <unique> <buffer> ar <Plug>RubyTextObjectsAll
   endif
 
-  onoremap <silent> <buffer> <expr> <Plug>RubyTextObjectsInner <SID>RubyTextObjectsInner(0)
   if !hasmapto('<Plug>RubyTextObjectsInner', 'o')
     omap <unique> <buffer> ir <Plug>RubyTextObjectsInner
   endif
 
-  vnoremap <silent> <buffer> <Plug>RubyTextObjectsAll :call <SID>RubyTextObjectsAll(1)<CR><Esc>gv
   if !hasmapto('<Plug>RubyTextObjectsAll', 'v')
     vmap <unique> <buffer> ar <Plug>RubyTextObjectsAll
   endif
 
-  vnoremap <silent> <buffer> <Plug>RubyTextObjectsInner :call <SID>RubyTextObjectsInner(1)<CR><Esc>gv
   if !hasmapto('<Plug>RubyTextObjectsInner', 'v')
     vmap <unique> <buffer> ir <Plug>RubyTextObjectsInner
   endif
@@ -49,10 +54,10 @@ else
   silent! ounmap <buffer> ir
   silent! vunmap <buffer> ar
   silent! vunmap <buffer> ir
-  onoremap <silent> <buffer> <expr> ar <SID>RubyTextObjectsAll(0)
-  onoremap <silent> <buffer> <expr> ir <SID>RubyTextObjectsInner(0)
-  vnoremap <silent> <buffer> ar :call <SID>RubyTextObjectsAll(1)<CR><Esc>gv
-  vnoremap <silent> <buffer> ir :call <SID>RubyTextObjectsInner(1)<CR><Esc>gv
+  omap <silent> <buffer> ar <Plug>RubyTextObjectsAll
+  omap <silent> <buffer> ir <Plug>RubyTextObjectsInner
+  vmap <silent> <buffer> ar <Plug>RubyTextObjectsAll
+  vmap <silent> <buffer> ir <Plug>RubyTextObjectsInner
 endif
 
 " }}}1
