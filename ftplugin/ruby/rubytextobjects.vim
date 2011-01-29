@@ -8,10 +8,8 @@
 "              runtimepath.
 "              :let testing_RubyTextObjects = 1 to allow reloading of the
 "              plugin without closing Vim.
-" Pending:     - Use Visual mode instead of Line Visual mode.
-"              - Optionally, first ar goes to do..end, second gets the rest of
+" Pending:     - Optionally, first ar goes to do..end, second gets the rest of
 "                the line.
-"              - Ignore multiple statements per line.
 " ============================================================================
 
 " Allow users to disable ftplugins
