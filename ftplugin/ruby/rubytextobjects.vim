@@ -410,3 +410,5 @@ function! s:Match(line, part) " {{{2
   "echom result
   return result
 endfunction " }}}2
+
+" vim: set et sw=2 sts=2:
