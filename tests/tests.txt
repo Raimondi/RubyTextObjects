@@ -1,3 +1,4 @@
+# This tests are for runVimTests + vimTAP
 # Generic {{{1
 # Check for mappings with filetype plugin on
 ge001.vim
