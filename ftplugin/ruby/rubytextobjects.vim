@@ -6,10 +6,16 @@
 " Manual:      The new text objects are 'ir' and 'ar'. Place this file in
 "              'ftplugin/ruby/' inside $HOME/.vim or somewhere else in your
 "              runtimepath.
+"              
 "              :let testing_RubyTextObjects = 1 to allow reloading of the
 "              plugin without closing Vim.
+"
+"              Multiple sentences on a single line are not handled by this
+"              plugin, the text objects might not work or work in an
+"              unexpected way.
+"
 " Pending:     - Optionally, first ar goes to do..end, second gets the rest of
-"                the line.
+"                the start of the block, if any.
 " ============================================================================
 
 " Allow users to disable ftplugins
@@ -76,7 +82,7 @@ endif
 
 " Variables {{{1
 " Lines where this expression returns 1 will be skipped
-"let s:skip_e  = 'getline(''.'') =~ ''^\s*#'' || synIDattr(synID(line("."), col("."), 0), "name") =~? ''\%(string\)\|\%(comment\)'''
+" Expression borrowed from default ruby ftplugin
 let s:skip_e =
       \ "synIDattr(synID(line('.'),col('.'),0),'name') =~ '"            .
       \ "\\<ruby\\%(String\\|StringDelimiter\\|ASCIICode\\|Escape\\|"   .
