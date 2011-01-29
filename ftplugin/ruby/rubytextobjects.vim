@@ -19,6 +19,20 @@ if exists('no_plugin_maps') || exists('no_ruby_maps')
 endif
 
 " Mappings {{{1
+
+let s:undo_ftplugin =
+      \ 'sil! ounmap <buffer> ar|sil! ounmap <buffer> ir|'.
+      \ 'sil! vunmap <buffer> ar|sil! vunmap <buffer> ir'
+if exists('b:undo_ftplugin') && b:undo_ftplugin !~ 'vunmap <buffer> ar'
+  if b:undo_ftplugin =~ '^\s*$'
+    let b:undo_ftplugin = s:undo_ftplugin
+  else
+    let b:undo_ftplugin = s:undo_ftplugin.'|'.b:undo_ftplugin
+  endif
+elseif !exists('b:undo_ftplugin')
+  let b:undo_ftplugin = s:undo_ftplugin
+endif
+
 onoremap <silent> <buffer> <expr> <Plug>RubyTextObjectsAll
       \ <SID>RubyTextObjectsAll(0)
 onoremap <silent> <buffer> <expr> <Plug>RubyTextObjectsInner
