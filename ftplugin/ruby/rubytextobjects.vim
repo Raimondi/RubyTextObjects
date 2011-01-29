@@ -90,8 +90,7 @@ elseif exists('testing_RubyTextObjects')
     if a:test == 1
       return s:Match(a:firstline, s:start_p).', '.s:Match(a:firstline, s:middle_p).', '.s:Match(a:firstline, s:end_p)
     elseif a:test == 2
-      return s:FindTextObject([a:firstline,0], [a:lastline,0], s:start_p,
-            \ s:middle_p, s:end_p, s:flags, s:skip_e)
+      return s:FindTextObject([a:firstline,0], [a:lastline,0], s:middle_p)
     elseif a:test == 3
       return searchpairpos(s:start_p, s:middle_p, s:end_p, a:1, s:skip_e)
     elseif a:test == 4
@@ -127,8 +126,7 @@ function! s:RubyTextObjectsAll(visual) range "{{{2
     let passes  += 1
 
     " Let's get some luv
-    let [t_start, t_end] = s:FindTextObject([t_start[0] - 1, 0], [t_end[0] + 1, 0], s:start_p, middle_p,
-          \ s:end_p, s:flags, s:skip_e)
+    let [t_start, t_end] = s:FindTextObject([t_start[0] - 1, 0], [t_end[0] + 1, 0], middle_p)
 
     "echom string(t_start).';'.string(t_end).':'.passes
     if t_start[0] > 0 && t_end[0] > 0
@@ -188,7 +186,7 @@ function! s:RubyTextObjectsInner(visual) range "{{{2
   " if a whole block is selected
   let is_rec      = 0
   let is_block    = 0
-  let first_TO = s:FindTextObject([a:firstline, 0],[a:lastline, 0], s:start_p, middle_p, s:end_p, s:flags, s:skip_e)
+  let first_TO = s:FindTextObject([a:firstline, 0],[a:lastline, 0], middle_p)
   if [[a:firstline, first_TO[0][1]],[a:lastline, first_TO[1][1]]] == first_TO
     " It is a whole block
     let is_block = 1
@@ -220,7 +218,7 @@ function! s:RubyTextObjectsInner(visual) range "{{{2
         \ (!(count1 > 1) || (t_start[0] - 1 >= 1 && t_end[0] + 1 < lastline))
 
     let passes  += 1
-    let [t_start, t_end] = s:FindTextObject([t_start[0] - 1, 0], [t_end[0] + 1, 0], s:start_p, s:middle_p, s:end_p, s:flags, s:skip_e)
+    let [t_start, t_end] = s:FindTextObject([t_start[0] - 1, 0], [t_end[0] + 1, 0], s:middle_p)
     "echom 't_start, t_end: '.string(t_start).','.string(t_end).':'.passes
 
     "echom string(t_start).';'.string(t_end).':'.passes
@@ -258,7 +256,7 @@ function! s:RubyTextObjectsInner(visual) range "{{{2
 
 endfunction " }}}2
 
-function! s:FindTextObject(first, last, start, middle, end, flags, skip) "{{{2
+function! s:FindTextObject(first, last, middle) "{{{2
 
   let first = {'start':[0,0], 'end':[0,0], 'range':0}
   let last  = {'start':[0,0], 'end':[0,0], 'range':0}
@@ -268,27 +266,27 @@ function! s:FindTextObject(first, last, start, middle, end, flags, skip) "{{{2
     " should be. Also determine if the current line should be searched.
     if s:Match(a:first[0], s:end_p)
       let spos   = 1
-      let sflags = a:flags.'b'
+      let sflags = s:flags.'b'
     else
       let spos   = 9999
-      let sflags = a:flags.'bc'
+      let sflags = s:flags.'bc'
     endif
 
     " Let's see where they are
     call cursor(a:first[0], spos)
-    let first.start  = searchpairpos(a:start,a:middle,a:end,sflags,a:skip)
+    let first.start  = searchpairpos(s:start_p,a:middle,s:end_p,sflags,s:skip_e)
 
     if s:Match(a:first[0], s:start_p)
       let epos   = 9999
-      let eflags = a:flags
+      let eflags = s:flags
     else
       let epos   = 1
-      let eflags = a:flags.'c'
+      let eflags = s:flags.'c'
     endif
 
     " Let's see where they are
     call cursor(a:first[0], epos)
-    let first.end    = searchpairpos(a:start,a:middle,a:end,eflags,a:skip)
+    let first.end    = searchpairpos(s:start_p,a:middle,s:end_p,eflags,s:skip_e)
 
     let result = [first.start, first.end]
 
@@ -297,47 +295,47 @@ function! s:FindTextObject(first, last, start, middle, end, flags, skip) "{{{2
     " Let's find a set with the first line of the range
     if s:Match(a:first[0], s:end_p)
       let spos   = 1
-      let sflags = a:flags.'b'
+      let sflags = s:flags.'b'
     else
       let spos   = 9999
-      let sflags = a:flags.'bc'
+      let sflags = s:flags.'bc'
     endif
 
     if s:Match(a:first[0], s:start_p)
       let epos   = 9999
-      let eflags = a:flags
+      let eflags = s:flags
     else
       let epos   = 1
-      let eflags = a:flags.'c'
+      let eflags = s:flags.'c'
     endif
 
     call cursor(a:first[0], spos)
-    let first.start  = searchpairpos(a:start,a:middle,a:end,sflags,a:skip)
+    let first.start  = searchpairpos(s:start_p,a:middle,s:end_p,sflags,s:skip_e)
     call cursor(a:first[0], epos)
-    let first.end    = searchpairpos(a:start,a:middle,a:end,eflags,a:skip)
+    let first.end    = searchpairpos(s:start_p,a:middle,s:end_p,eflags,s:skip_e)
     let first.range  = first.end[0] - first.start[0]
 
     " Let's find the second set with the last line of the range
     if s:Match(a:last[0], s:end_p)
       let spos   = 1
-      let sflags = a:flags.'b'
+      let sflags = s:flags.'b'
     else
       let spos   = 9999
-      let sflags = a:flags.'bc'
+      let sflags = s:flags.'bc'
     endif
 
     if s:Match(a:last[0], s:start_p)
       let epos   = 9999
-      let eflags = a:flags
+      let eflags = s:flags
     else
       let epos   = 1
-      let eflags = a:flags.'c'
+      let eflags = s:flags.'c'
     endif
 
     call cursor(a:last[0], spos)
-    let last.start  = searchpairpos(a:start,a:middle,a:end,sflags,a:skip)
+    let last.start  = searchpairpos(s:start_p,a:middle,s:end_p,sflags,s:skip_e)
     call cursor(a:last[0], epos)
-    let last.end    = searchpairpos(a:start,a:middle,a:end,eflags,a:skip)
+    let last.end    = searchpairpos(s:start_p,a:middle,s:end_p,eflags,s:skip_e)
     let last.range  = last.end[0] - last.start[0]
 
     " Now, decide what to return
