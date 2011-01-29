@@ -76,7 +76,14 @@ endif
 
 " Variables {{{1
 " Lines where this expression returns 1 will be skipped
-let s:skip_e  = 'getline(''.'') =~ ''^\s*#'' || synIDattr(synID(line("."), col("."), 0), "name") =~? ''\%(string\)\|\%(comment\)'''
+"let s:skip_e  = 'getline(''.'') =~ ''^\s*#'' || synIDattr(synID(line("."), col("."), 0), "name") =~? ''\%(string\)\|\%(comment\)'''
+let s:skip_e =
+      \ "synIDattr(synID(line('.'),col('.'),0),'name') =~ '"            .
+      \ "\\<ruby\\%(String\\|StringDelimiter\\|ASCIICode\\|Escape\\|"   .
+      \ "Interpolation\\|NoInterpolation\\|Comment\\|Documentation\\|"  .
+      \ "ConditionalModifier\\|RepeatModifier\\|OptionalDo\\|"          .
+      \ "Function\\|BlockArgument\\|KeywordAsMethod\\|ClassVariable\\|" .
+      \ "InstanceVariable\\|GlobalVariable\\|Symbol\\)\\>'"
 
 " List of words that start a block at the beginning of the line
 let s:beg_words = '<def>|<module>|<class>|<case>|<if>|<unless>|<begin>|<for>|<until>|<while>|<catch>'
