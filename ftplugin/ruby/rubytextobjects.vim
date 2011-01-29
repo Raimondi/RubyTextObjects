@@ -88,7 +88,7 @@ elseif exists('testing_RubyTextObjects')
 
   function! Test(test,...) range
     if a:test == 1
-      return s:Match(a:firstline, 'start').', '.s:Match(a:firstline, 'middle').', '.s:Match(a:firstline, 'end')
+      return s:Match(a:firstline, s:start_p).', '.s:Match(a:firstline, s:middle_p).', '.s:Match(a:firstline, s:end_p)
     elseif a:test == 2
       return s:FindTextObject([a:firstline,0], [a:lastline,0], s:start_p,
             \ s:middle_p, s:end_p, s:flags, s:skip_e)
@@ -120,8 +120,8 @@ function! s:RubyTextObjectsAll(visual) range "{{{2
   let passes  = 0
 
   let match_both_outer = (
-        \ s:Match(t_start[0] - 1, 'start') &&
-        \ s:Match(t_end[0] + 1, 'end'))
+        \ s:Match(t_start[0] - 1, s:start_p) &&
+        \ s:Match(t_end[0] + 1, s:end_p))
   while  count1 > 0 &&
         \ (!(count1 > 1) || (t_start[0] - 1 > 1 && t_end[0] + 1 < lastline))
     let passes  += 1
@@ -266,7 +266,7 @@ function! s:FindTextObject(first, last, start, middle, end, flags, skip) "{{{2
   if a:first[0] == a:last[0] " Range is the current line {{{3
     " searchpair() starts looking at the cursor position. Find out where that
     " should be. Also determine if the current line should be searched.
-    if s:Match(a:first[0], 'e')
+    if s:Match(a:first[0], s:end_p)
       let spos   = 1
       let sflags = a:flags.'b'
     else
@@ -278,7 +278,7 @@ function! s:FindTextObject(first, last, start, middle, end, flags, skip) "{{{2
     call cursor(a:first[0], spos)
     let first.start  = searchpairpos(a:start,a:middle,a:end,sflags,a:skip)
 
-    if s:Match(a:first[0], 's')
+    if s:Match(a:first[0], s:start_p)
       let epos   = 9999
       let eflags = a:flags
     else
@@ -295,7 +295,7 @@ function! s:FindTextObject(first, last, start, middle, end, flags, skip) "{{{2
   else " Range is not the current line {{{3
 
     " Let's find a set with the first line of the range
-    if s:Match(a:first[0], 'e')
+    if s:Match(a:first[0], s:end_p)
       let spos   = 1
       let sflags = a:flags.'b'
     else
@@ -303,7 +303,7 @@ function! s:FindTextObject(first, last, start, middle, end, flags, skip) "{{{2
       let sflags = a:flags.'bc'
     endif
 
-    if s:Match(a:first[0], 's')
+    if s:Match(a:first[0], s:start_p)
       let epos   = 9999
       let eflags = a:flags
     else
@@ -318,7 +318,7 @@ function! s:FindTextObject(first, last, start, middle, end, flags, skip) "{{{2
     let first.range  = first.end[0] - first.start[0]
 
     " Let's find the second set with the last line of the range
-    if s:Match(a:last[0], 'e')
+    if s:Match(a:last[0], s:end_p)
       let spos   = 1
       let sflags = a:flags.'b'
     else
@@ -326,7 +326,7 @@ function! s:FindTextObject(first, last, start, middle, end, flags, skip) "{{{2
       let sflags = a:flags.'bc'
     endif
 
-    if s:Match(a:last[0], 's')
+    if s:Match(a:last[0], s:start_p)
       let epos   = 9999
       let eflags = a:flags
     else
@@ -383,19 +383,8 @@ function! s:FindTextObject(first, last, start, middle, end, flags, skip) "{{{2
 endfunction "}}}2
 
 function! s:Match(line, part) " {{{2
-  if a:part =~? '\ms\%[tart]'
-    let part = s:start_p
-  elseif a:part =~? '\mm\%[iddle]'
-    let part = s:middle_p
-  elseif a:part =~? '\me\%[nd]'
-    let part = s:end_p
-  else
-    throw 'Oops!'
-  endif
   call cursor(a:line, 1)
-  "call search(part, 'cW', a:line)
-  "let result = getline('.') =~# part && !eval(s:skip_e)
-  let result = search(part, 'cW', a:line) > 0 && !eval(s:skip_e)
+  let result = search(a:part, 'cW', a:line) > 0 && !eval(s:skip_e)
   "echom result
   return result
 endfunction " }}}2
