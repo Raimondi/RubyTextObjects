@@ -63,6 +63,8 @@ vi013.vim
 vi014.vim
 # Sample 6, go to start of first nested block and :norm vggird
 vi015.vim
+# Sample 20, go to start of nested block and :norm vird
+vi016.vim
 
 # - Operator Pending All {{{1
 # Sample 1, go to 'class' and :norm dar
@@ -97,9 +99,11 @@ oi006.vim
 # Sample 5, go to first line inside nested block and :norm dir, needs
 # syntax on to ignore keywords inside strings
 oi007.vim
-# Sample 6, go to last end and norm dir
+# Sample 6, go to last end and :norm dir
 oi008.vim
-# Sample 6, go to first header and norm dir
+# Sample 6, go to first header and :norm dir
 oi009.vim
+# Sample 20, go to start of nested block and :norm dir
+oi019.vim
 
 # vim: set fdm=marker tw=78: {{{1
