@@ -6,7 +6,7 @@
 " Manual:      The new text objects are 'ir' and 'ar'. Place this file in
 "              'ftplugin/ruby/' inside $HOME/.vim or somewhere else in your
 "              runtimepath.
-"              
+"
 "              :let testing_RubyTextObjects = 1 to allow reloading of the
 "              plugin without closing Vim.
 "
@@ -116,11 +116,11 @@ if exists('loaded_RubyTextObjects') && !exists('testing_RubyTextObjects')
 elseif exists('testing_RubyTextObjects')
   echom '----Loaded on: '.strftime("%Y %b %d %X")
 
-  function! Test(test,...) range
+  function! Test(first, last, test,...)
     if a:test == 1
-      return s:Match(a:firstline, s:start_p).', '.s:Match(a:firstline, s:middle_p).', '.s:Match(a:firstline, s:end_p)
+      return s:Match(a:first, s:start_p).', '.s:Match(a:first, s:middle_p).', '.s:Match(a:first, s:end_p)
     elseif a:test == 2
-      return s:FindTextObject([a:firstline,0], [a:lastline,0], s:middle_p)
+      return s:FindTextObject([a:first,0], [a:last,0], s:middle_p)
     elseif a:test == 3
       return searchpairpos(s:start_p, s:middle_p, s:end_p, a:1, s:skip_e)
     elseif a:test == 4
@@ -131,8 +131,7 @@ elseif exists('testing_RubyTextObjects')
       throw 'Ooops!'
     endif
   endfunction
-  command! -bar -range -buffer -nargs=+ Test echom string(Test(<f-args>))
-
+  command! -bar -range -buffer -nargs=+ Test echom string(Test(<line1>, <line2>, <f-args>))
 endif
 let loaded_RubyTextObjects = '0.1a'
  "}}}2
@@ -204,208 +203,221 @@ function! s:RubyTextObjectsAll(visual) range "{{{2
 
 endfunction " }}}2
 
-function! s:RubyTextObjectsInner(visual) range "{{{2
-  let lastline      = line('$')
-  let start         = [0,0]
-  let middle_p      = s:middle_p
-  let end           = [-1,0]
-  let count1        = v:count1 < 1 ? 1 : v:count1
-  let initial       = [a:firstline, a:lastline]
-
-  " If called from visual mode, find out if it looks like a recursive ir and
-  " if a whole block is selected
-  let is_rec      = 0
-  let is_block    = 0
-  let first_TO = s:FindTextObject([a:firstline, 0],[a:lastline, 0], middle_p)
-  if [[a:firstline, first_TO[0][1]],[a:lastline, first_TO[1][1]]] == first_TO
-    " It is a whole block
-    let is_block = 1
+function! s:RubyTextObjectsInner(visual, ...) range "{{{2
+  " Recursing?
+  if a:0
+    let firstline = a:1
+    let lastline  = a:2
+    let count1    = a:3 - 1
+    let original  = [[firstline, 1], [lastline, len(getline(lastline)) + 1]]
+  else
+    let firstline = a:firstline
+    let lastline  = a:lastline
+    let count1    = v:count1 < 1 ? 1 : v:count1
+    let original  = [getpos("'<")[1:2], getpos("'>")[1:2]]
   endif
-  if getpos("'<")[2] == 1 &&
-        \ getpos("'>")[2] == len(getline(getpos("'>")[1])) + 1 &&
-        \ visualmode() == 'v'
-    " It looks recursive
-    if is_block
-      " It is recursive, with a whole block
-      let is_rec = 2
-    elseif [[a:firstline - 1, first_TO[0][1]],[a:lastline + 1, first_TO[1][1]]] == first_TO
-      " It is recursive, with an inner block
-      let is_rec = 1
-    endif
-  endif
+  let line_eof    = line('$')
+  let current     = {'start': [firstline,0], 'end': [lastline,0]}
+  let middle_p    = s:middle_p
+  let l:count     = 0
+  let d_start     = 0
+  let d_end       = 0
+  let i           = 0
 
-  let [t_start, t_end] = first_TO
-  let [start, end] = first_TO
-  let passes  = 0
-
-  let one_more = ((is_block && [start[0], end[0]] == initial) || is_rec) && a:visual
-  if one_more && is_rec == 2
-    let t_start[0] -= 1
-    let t_end[0]   += 1
-  endif
-  "echom '[is_rec, is_block]: ['.is_rec.', '.is_block.'], t_start, t_end: '.t_start[0].', '.t_end[0] .', first_TO: '.string(first_TO).', one_more: '.one_more
-  while  (count1 > 1 || one_more) && first_TO != [[0,0],[0,0]] &&
-        \ (!(count1 > 1) || (t_start[0] - 1 >= 1 && t_end[0] + 1 < lastline))
-
-    let passes  += 1
-    let [t_start, t_end] = s:FindTextObject([t_start[0] - 1, 0], [t_end[0] + 1, 0], s:middle_p)
-    "echom 't_start, t_end: '.string(t_start).','.string(t_end).':'.passes
-
-    "echom string(t_start).';'.string(t_end).':'.passes
-    if t_start[0] > 0 && t_end[0] > 0
-      let start = t_start
-      let end   = t_end
-    else
+  while i <= 2 && (current.start[0] + d_start) > 0 && (current.end[0] + d_end) <= line_eof
+    let i += 1
+    " Get a text object
+    let [current.start, current.end] = s:FindTextObject(
+          \ [current.start[0] + d_start, 0], [current.end[0] + d_end, 0], middle_p)
+    "echom 'Current: '.string(current).', count: '.i
+    " If it's null, stop looking
+    if [current.start, current.end] == [[0,0],[0,0]]
       break
     endif
-
-    "echom 'initial: '.string(initial).', final: ['.(start[0]).', '.(end[0]).']'
-    if one_more
-      let one_more = 0
-      continue
+    let is_block = 0
+    if [firstline, lastline] == [current.start[0], current.end[0]]
+      " The original selection's range is the same as the one from the text
+      " object.
+      " It is a whole block
+      let is_block = 1
     endif
-    let count1  -= 1
+    let is_repeat = 0
+    " Find out what to do {{{
+    " If:
+    " - Is visual? AND
+    "   - Is repeated? OR
+    "   - Is the selection a previously selected text block?
+    if a:visual
+          \ && (a:0
+          \     || (original[0][1] == 1
+          \         && original[1][1] >= len(getline(getpos("'>")[1])) + 1))
+
+      " Determine what is selected
+      if getline(firstline - 1) =~ s:middle_p ||
+            \ getline(lastline + 1) =~ s:middle_p
+        " The line over and/or under matches a s:middle_p
+        if !is_block
+          " It is repeated with an inner middle block
+          let is_repeat = 4
+          let middle_p = ''
+          let d_start  = 0
+          let d_end    = 0
+        else
+          " It is repeated with an inner middle block and a whole block
+          let is_repeat = 3
+          let middle_p = ''
+          let d_start  = -1
+          let d_end    = 1
+        endif
+      elseif [firstline - 1, lastline + 1] == [current.start[0], current.end[0]]
+        " The text object limits are just over and under the original
+        " selection
+        " It is repeated, with an inner block
+        let is_repeat = 2
+        let d_start  = -1
+        let d_end    = 1
+      elseif is_block
+        " It is repeated, with a whole block
+        let is_repeat = 1
+        let d_start  = -1
+        let d_end    = 1
+      endif
+    endif "}}}
+    "echom 'is_repeat: '.is_repeat.', is_block: '.is_block
+
+    if is_repeat == 0
+      " No need to loop
+      break
+    endif
   endwhile
 
+  "echom 'Current: '.string(current).', count1: '.count1
+  if count1 > 1
+    " Let's recurse
+    let current = s:RubyTextObjectsInner(a:visual, current.start[0] + 1, current.end[0] - 1, count1)
+  endif
+  if a:0
+    return current
+  endif
   if a:visual
-    if end[0] >= start[0] && start[0] >= 1 && end[0] >= 1 && end[0] - start[0] > 1
+    if current.end[0] >= current.start[0] && current.start[0] >= 1 && current.end[0] >= 1 && current.end[0] - current.start[0] > 1
       " Do visual magic
-      exec "normal! \<Esc>".(start[0] + 1).'G'
-      exec "normal! 0v".(end[0] - 1)."G$"
-      "echom string(start).';'.string(end).':'.passes
+      exec "normal! \<Esc>".(current.start[0] + 1).'G'
+      exec "normal! 0v".(current.end[0] - 1)."G$"
     endif
   else
-    if end[0] >= start[0] && start[0] >= 1 && end[0] >= 1 && end[0] - start[0] > 1
+    if current.end[0] >= current.start[0] && current.start[0] >= 1 && current.end[0] >= 1 && current.end[0] - current.start[0] > 1
       " Do operator pending magic
-      return ':exec "normal! '.(start[0] + 1).'G0v'.(end[0] - 1)."G$\"\<CR>"
+      return ':exec "normal! '.(current.start[0] + 1)
+            \ .'G0v'.(current.end[0] - 1)."G$\"\<CR>"
     else
       " No pair found, do nothing
       return "\<Esc>"
     endif
   endif
+endfunction "}}}2
 
-endfunction " }}}2
-
-function! s:FindTextObject(first, last, middle) "{{{2
+function! s:FindTextObject(first, last, middle, ...) "{{{2
+  if a:0
+    let l:count = a:1 + 1
+  else
+    let l:count = 1
+  endif
+  "echom 'FTO count: '.l:count
+  if a:first[0] > a:last[0]
+    throw 'Muy mal... a:first > a:last'
+  endif
+  "echom 'Range : '.string([a:first, a:last])
 
   let first = {'start':[0,0], 'end':[0,0], 'range':0}
   let last  = {'start':[0,0], 'end':[0,0], 'range':0}
 
-  if a:first[0] == a:last[0] " Range is the current line {{{3
-    " searchpair() starts looking at the cursor position. Find out where that
-    " should be. Also determine if the current line should be searched.
-    if s:Match(a:first[0], s:end_p)
-      let spos   = 1
-      let sflags = s:flags.'b'
-    else
-      let spos   = 9999
-      let sflags = s:flags.'bc'
-    endif
+  " searchpair() starts looking at the cursor position. Find out where that
+  " should be. Also determine if the current line should be searched.
+  if s:Match(a:first[0], s:end_p)
+    let spos   = 1
+    let sflags = s:flags.'b'
+  else
+    let spos   = 9999
+    let sflags = s:flags.'bc'
+  endif
 
-    " Let's see where they are
-    call cursor(a:first[0], spos)
-    let first.start  = searchpairpos(s:start_p,a:middle,s:end_p,sflags,s:skip_e)
+  " Let's see where they are
+  call cursor(a:first[0], spos)
+  let first.start  = searchpairpos(s:start_p,a:middle,s:end_p,sflags,s:skip_e)
 
-    if s:Match(a:first[0], s:start_p)
-      let epos   = 9999
-      let eflags = s:flags
-    else
-      let epos   = 1
-      let eflags = s:flags.'c'
-    endif
+  if a:middle == ''
+    let s_match = s:Match(a:first[0], s:start_p)
+  else
+    let s_match = s:Match(a:first[0], s:start_p) || s:Match(a:first[0], a:middle)
+  endif
+  if s_match
+    let epos   = 9999
+    let eflags = s:flags
+  else
+    let epos   = 1
+    let eflags = s:flags.'c'
+  endif
 
-    " Let's see where they are
-    call cursor(a:first[0], epos)
-    let first.end    = searchpairpos(s:start_p,a:middle,s:end_p,eflags,s:skip_e)
+  " Let's see where they are
+  call cursor(a:first[0], epos)
+  let first.end    = searchpairpos(s:start_p,a:middle,s:end_p,eflags,s:skip_e)
 
+  "echom 'First : '.string([first.start, first.end])
+  if a:first == a:last
     let result = [first.start, first.end]
+  else
+    let [last.start, last.end] = s:FindTextObject(a:last, a:last, a:middle, l:count)
+    "echom 'Last  : '.string([last.start, last.end])
 
-  else " Range is not the current line {{{3
-
-    " Let's find a set with the first line of the range
-    if s:Match(a:first[0], s:end_p)
-      let spos   = 1
-      let sflags = s:flags.'b'
-    else
-      let spos   = 9999
-      let sflags = s:flags.'bc'
-    endif
-
-    if s:Match(a:first[0], s:start_p)
-      let epos   = 9999
-      let eflags = s:flags
-    else
-      let epos   = 1
-      let eflags = s:flags.'c'
-    endif
-
-    call cursor(a:first[0], spos)
-    let first.start  = searchpairpos(s:start_p,a:middle,s:end_p,sflags,s:skip_e)
-    call cursor(a:first[0], epos)
-    let first.end    = searchpairpos(s:start_p,a:middle,s:end_p,eflags,s:skip_e)
     let first.range  = first.end[0] - first.start[0]
+    let last.range   = last.end[0] - last.start[0]
+    if first.end[0] <= last.start[0] &&
+          \ (getline(first.end[0])  =~ s:middle_p && first.range > 0) &&
+          \ (getline(last.start[0]) =~ s:middle_p && last.range  > 0)
+      " Looks like a middle inner match, start over without looking for
+      " s:middle_p
+      let result = s:FindTextObject(a:first, a:last, '', 1)
 
-    " Let's find the second set with the last line of the range
-    if s:Match(a:last[0], s:end_p)
-      let spos   = 1
-      let sflags = s:flags.'b'
     else
-      let spos   = 9999
-      let sflags = s:flags.'bc'
-    endif
-
-    if s:Match(a:last[0], s:start_p)
-      let epos   = 9999
-      let eflags = s:flags
-    else
-      let epos   = 1
-      let eflags = s:flags.'c'
-    endif
-
-    call cursor(a:last[0], spos)
-    let last.start  = searchpairpos(s:start_p,a:middle,s:end_p,sflags,s:skip_e)
-    call cursor(a:last[0], epos)
-    let last.end    = searchpairpos(s:start_p,a:middle,s:end_p,eflags,s:skip_e)
-    let last.range  = last.end[0] - last.start[0]
-
-    " Now, decide what to return
-    if first.range > last.range
-      if first.start[0] <= last.start[0] && first.end[0] >= last.end[0]
-        " last is inside first
-        let result = [first.start, first.end]
-      elseif last.range == 0
-        " Last is null
-        let result = [first.start, first.end]
+      " Now, decide what to return
+      if first.range > last.range
+        if first.start[0] <= last.start[0] && first.end[0] >= last.end[0]
+          " last is inside first
+          let result = [first.start, first.end]
+        elseif last.range == 0
+          " Last is null
+          let result = [first.start, first.end]
+        else
+          " Something is wrong, last is not inside first
+          let result = [[0,0],[0,0]]
+        endif
+      elseif first.range < last.range
+        if first.start[0] >= last.start[0] && first.end[0] <= last.end[0]
+          " first is inside last
+          let result = [last.start, last.end]
+        elseif first.range == 0
+          " first is null
+          let result = [last.start, last.end]
+        else
+          " Something is wrong, first is not inside last
+          let result = [[0,0],[0,0]]
+        endif
       else
-        " Something is wrong, last is not inside first
-        let result = [[0,0],[0,0]]
+        if first.start[0] == last.start[0]
+          " first and last are the same
+          let result = [first.start, first.end]
+        else
+          " first and last are not the same
+          "let result = [a:first, a:last]
+          let result = [[0,0],[0,0]]
+        endif
       endif
-    elseif first.range < last.range
-      if first.start[0] >= last.start[0] && first.end[0] <= last.end[0]
-        " first is inside last
-        let result = [last.start, last.end]
-      elseif first.range == 0
-        " first is null
-        let result = [last.start, last.end]
-      else
-        " Something is wrong, first is not inside last
-        let result = [[0,0],[0,0]]
-      endif
-    else
-      if first.start[0] == last.start[0]
-        " first and last are the same
-        let result = [first.start, first.end]
-      else
-        " first and last are not the same
-        let result = [a:first, a:last]
-      endif
+
     endif
-  endif "}}}3
-
-  "echom string(result) . ', first: ' . string(first) . ', last' .
-  "      \ string(last) . ', epos: ' . epos . ', spos: ' . spos .
-  "      \ ', sflags: ' . sflags . ', eflags: ' . eflags
-
+  endif
+  "echom 'Result: '.string(result) . ', first: ' . string(first) . ', last' .
+        \ string(last). ', spos: ' . spos . ', sflags: ' . sflags . ', epos: ' . epos . ', eflags: ' . eflags. '. middle_p: '.a:middle
   return result
 
 endfunction "}}}2
@@ -417,4 +429,4 @@ function! s:Match(line, part) " {{{2
   return result
 endfunction " }}}2
 
-" vim: set et sw=2 sts=2:
+" vim: set et sw=2 sts=2: {{{1
